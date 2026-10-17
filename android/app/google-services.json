@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "40811673099",
+    "firebase_url": "https://naitik-live-class-default-rtdb.firebaseio.com",
+    "project_id": "naitik-live-class",
+    "storage_bucket": "naitik-live-class.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:40811673099:android:9f65b53bd93bf18d1bb90e",
+        "android_client_info": {
+          "package_name": "com.example.teacher_live_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDinVGEwhhrKMBJmsDSt-5cPoVrNi8A3Zg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

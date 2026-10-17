@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Temporary public access matches the unauthenticated app; require auth before public deployment.
+    match /live_session/{document=**} {
+      allow read, write: if true;
+    }
+
+    match /past_classes/{document=**} {
+      allow read, write: if true;
+    }
+
+    match /app_settings/{document=**} {
+      allow read, write: if true;
+    }
+
+    match /broadcast_notifications/{document=**} {
+      allow read, write: if true;
+    }
+
+    match /student_device_tokens/{document=**} {
+      allow read, write: if true;
+    }
+
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "naitik-live-class",
+          "appId": "1:40811673099:android:9f65b53bd93bf18d1bb90e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "naitik-live-class",
+          "configurations": {
+            "android": "1:40811673099:android:9f65b53bd93bf18d1bb90e",
+            "ios": "1:40811673099:ios:144120c2a0f83cdc1bb90e",
+            "macos": "1:40811673099:ios:144120c2a0f83cdc1bb90e",
+            "web": "1:40811673099:web:f9a0405369e52c891bb90e",
+            "windows": "1:40811673099:web:f9b1383715a6c4541bb90e"
+          }
+        }
+      }
+    }
+  },
+  "hosting": [
+    {
+      "target": "sscstudyhub",
+      "public": "build/web",
+      "cleanUrls": true,
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/admin",
+          "destination": "/admin.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "liveclass",
+      "public": "build/web",
+      "cleanUrls": true,
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/admin",
+          "destination": "/admin.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

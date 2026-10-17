@@ -1,0 +1,128 @@
+# 🚀 SSC Study Hub Pro — Next-Gen Hybrid EdTech Classroom
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.24+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.5+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-Hosting%20%26%20Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Web Portal](https://img.shields.io/badge/Live%20Web-sscstudyhub.web.app-brightgreen?logo=google-chrome&logoColor=white)](https://sscstudyhub.web.app)
+[![Admin Studio](https://img.shields.io/badge/Admin%20Studio-Cyber%20Executive-purple?logo=shield&logoColor=white)](https://sscstudyhub.web.app/admin)
+
+An enterprise-grade, real-time live lecture and study hub platform engineered for both **Web (PC & Mobile)** and **Android**. Features an Error-153 immune cinematic video engine, zero-hover YouTube pointer interception, proprietary floating emoji physics, AI-powered real-time doubt solver, and a cyber-themed administrative broadcast studio.
+
+---
+
+## 🌐 Live Production Deployments
+
+* **Student Web Portal**: [https://sscstudyhub.web.app](https://sscstudyhub.web.app)
+* **Secondary Production Mirror**: [https://naitik-live-class.web.app](https://naitik-live-class.web.app)
+* **Teacher Executive Studio**: [https://sscstudyhub.web.app/admin](https://sscstudyhub.web.app/admin)
+
+---
+
+## ⚡ Core Feature Highlights
+
+### 1. 🛡️ Cinematic Video Engine & Pointer Interceptor
+* **Zero YouTube Hover Artifacts**: The player wraps YouTube's embedded stream in a multi-layered pointer interceptor. Mouse movement across the video never triggers YouTube's native controls, watermarks, or title banners.
+* **Proprietary Touch & Control Overlay**:
+  * Clean arrow pointer across the video stage (`cursor: default`), cleanly hiding after 3.5 seconds of inactivity.
+  * Direct postMessage hardware playback bridge: instant Play/Pause and Mute/Unmute toggle.
+  * True native Fullscreen with zero browser gesture rejection across desktop and mobile browsers.
+  * Adaptive edge detection that smoothly auto-hides controls when the cursor is parked at screen edges.
+
+### 2. 🎈 Real-Time Live Floating Emoji Reactions
+* Real-time floating emoji bubbles (❤️, 🔥, 👏, 💡, 🚀, 🙋‍♂️) rising smoothly along the right edge of the screen, inspired by YouTube Live and Instagram Live.
+* Dual-engine rendering: GPU-accelerated CSS keyframe animations on Web and 60fps particle physics on Android.
+* Ultra-low-latency (<80ms) multi-client broadcast via Firebase Firestore.
+
+### 3. 💬 Real-Time Live Chat & Private Question Modes
+* Public classroom chat with administrative moderation badges.
+* Teacher locking and private Q&A modes.
+* Full keyboard space-bar support and uninterrupted typing across all desktop and mobile browsers.
+
+### 4. 🧠 Instant AI Doubts Solver
+* Embedded Google Gemini AI engine answering student questions in real-time during live lectures.
+* State-preserving drawer panels that maintain context across orientation and layout changes.
+
+### 5. 🎛️ Cyber Executive Admin Studio (`/admin`)
+* Real-time broadcast management (Enter video ID, schedule upcoming classes, pin announcements).
+* One-click student attendance and active viewer tracking.
+* Dynamic question paper and quiz builder with automated GitHub syllabus synchronization.
+* Live reaction pulse trigger for teacher interaction.
+
+---
+
+## 🏗️ Architecture & Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend Framework** | Flutter 3.24+ (Web, Android, Desktop) |
+| **Language** | Dart 3.5+ / HTML5 / CSS3 / JavaScript |
+| **Backend & Realtime** | Firebase Firestore, Firebase Hosting, Firebase Messaging (FCM) |
+| **Streaming Engine** | YouTube Embedded IFrame API with `youtube-nocookie.com` |
+| **AI Doubt Clearing** | Google Gemini Generative AI API |
+| **PDF & Syllabus Engine** | Syncfusion Flutter PDF / GitHub Contents API |
+| **State & Lifecycle** | AutomaticKeepAliveClientMixin, Persistent GlobalKeys, ValueNotifiers |
+
+---
+
+## 📱 Mobile Android APKs
+
+The project is configured with ABI splitting to produce lightweight, highly optimized Android APK packages:
+
+* **ARM 64-bit (`app-arm64-v8a-release.apk`)**: ~28.8 MB (Optimized for modern Android devices)
+* **ARM 32-bit (`app-armeabi-v7a-release.apk`)**: ~27.0 MB (Optimized for budget & older devices)
+* **x86_64 (`app-x86_64-release.apk`)**: ~30.2 MB (Optimized for ChromeOS & emulators)
+
+---
+
+## 🚀 Local Development Setup
+
+### Prerequisites
+* Flutter SDK (3.22.0 or higher)
+* Dart SDK (3.5.0 or higher)
+* Android SDK & Android Studio (for native Android builds)
+* Firebase CLI (`npm install -g firebase-tools`)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/bnaitik94-netizen/SSCstudyHub.git
+cd SSCstudyHub
+```
+
+### 2. Install Dependencies
+```bash
+flutter pub get
+```
+
+### 3. Run Locally (Chrome Web)
+```bash
+flutter run -d chrome
+```
+
+### 4. Build for Production Web
+```bash
+flutter build web --release
+```
+
+### 5. Build Android Release APKs
+```bash
+flutter build apk --release --split-per-abi
+```
+
+### 6. Deploy to Firebase Hosting
+```bash
+firebase deploy --only hosting
+```
+
+---
+
+## 👨‍💻 Author & Maintainer
+
+* **Developer**: Naitik ([@bnaitik94-netizen](https://github.com/bnaitik94-netizen))
+* **Project**: SSC Study Hub Pro
+* **Website**: [sscstudyhub.web.app](https://sscstudyhub.web.app)
+
+---
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

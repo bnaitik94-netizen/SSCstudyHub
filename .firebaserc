@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "naitik-live-class"
+  },
+  "targets": {
+    "naitik-live-class": {
+      "hosting": {
+        "sscstudyhub": [
+          "sscstudyhub"
+        ],
+        "liveclass": [
+          "naitik-live-class"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

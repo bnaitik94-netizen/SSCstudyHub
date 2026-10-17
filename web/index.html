@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0B132B">
+  <meta name="description" content="SSC Study Hub Pro: live classes, recorded lessons, schedules, and student support.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SSC Study Hub">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>SSC Study Hub Pro</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- YOUTUBE IFRAME API SCRIPT FOR ACCELERATED WEB PLAYER INITIALIZATION -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <!-- PDF.JS SCRIPTS REQUIRED FOR SYNCFUSION PDF VIEWER ON WEB -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <script type="text/javascript">
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
+  </script>
+
+  <!-- UNIVERSAL FULLSCREEN API ENGINE (PC & MOBILE CHROME / SAFARI) -->
+  <script>
+    window.isAppFullscreen = function() {
+      return !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    };
+
+    window.requestAppFullscreen = function() {
+      var elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        return elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        return elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        return elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        return elem.msRequestFullscreen();
+      }
+      return Promise.resolve();
+    };
+
+    window.exitAppFullscreen = function() {
+      if (document.exitFullscreen) {
+        return document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        return document.webkitExitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        return document.mozCancelFullScreen();
+      } else if (document.msExitFullscreen) {
+        return document.msExitFullscreen();
+      }
+      return Promise.resolve();
+    };
+
+    window.sendYouTubePlayerCommand = function(command, args) {
+      function findIframes(root) {
+        var found = [];
+        if (!root) return found;
+        try {
+          var list = root.querySelectorAll('iframe');
+          for (var i = 0; i < list.length; i++) found.push(list[i]);
+          var all = root.querySelectorAll('*');
+          for (var j = 0; j < all.length; j++) {
+            if (all[j].shadowRoot) {
+              found = found.concat(findIframes(all[j].shadowRoot));
+            }
+          }
+        } catch(e) {}
+        return found;
+      }
+      var iframes = findIframes(document);
+      for (var i = 0; i < iframes.length; i++) {
+        try {
+          iframes[i].contentWindow.postMessage(JSON.stringify({
+            event: 'listening'
+          }), '*');
+          iframes[i].contentWindow.postMessage(JSON.stringify({
+            event: 'command',
+            func: command,
+            args: args || []
+          }), '*');
+        } catch(e) {}
+      }
+    };
+  </script>
+</head>
+<body style="background-color: #0B132B; margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100vh;">
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

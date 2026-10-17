@@ -1,0 +1,72 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# GitHub Actions workflows (prevent PAT workflow permission conflict)
+.github/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+**/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio / Gradle build artifacts
+.gradle/
+**/.gradle/
+/android/app/debug
+/android/app/profile
+/android/app/release
+android/build/
+**/android/build/
+
+# Node modules & npm
+node_modules/
+package-lock.json
+
+# Builds & heavy binary archives
+*.apk
+*.aab
+*.zip
+*.tar.gz
+
+# Firebase CLI cache & logs
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# Temporary test folders
+y/
+yes/
+debug_info/
