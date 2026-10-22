@@ -54,7 +54,7 @@ class DesktopSidebar extends StatelessWidget {
     ),
     _SidebarNavEntry(
       index: 3,
-      title: "Profile",
+      title: "Student Profile",
       subtitle: "Analytics & Settings",
       icon: Icons.person_rounded,
       activeIcon: Icons.person,
@@ -64,21 +64,21 @@ class DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double sidebarWidth = isExpanded ? 256.0 : 76.0;
+    final double sidebarWidth = isExpanded ? 260.0 : 76.0;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 240),
+      duration: const Duration(milliseconds: 220),
       curve: Curves.easeInOutCubic,
       width: sidebarWidth,
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.97),
-        border: const Border(
-          right: BorderSide(color: Colors.white12, width: 1.0),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0B101E),
+        border: Border(
+          right: BorderSide(color: Color(0xFF1E293B), width: 1.0),
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black26,
-            blurRadius: 16,
+            color: Color(0x33000000),
+            blurRadius: 20,
             offset: Offset(2, 0),
           ),
         ],
@@ -86,13 +86,13 @@ class DesktopSidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── BRAND HEADER & COLLAPSE TOGGLE ────────────────────────────────
+          // ── BRAND HEADER & COLLAPSE BUTTON ────────────────────────────────
           Container(
             height: 64,
             padding: EdgeInsets.symmetric(horizontal: isExpanded ? 16 : 14),
             decoration: const BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: Colors.white10, width: 1.0),
+                bottom: BorderSide(color: Color(0xFF1E293B), width: 1.0),
               ),
             ),
             child: Row(
@@ -102,21 +102,21 @@ class DesktopSidebar extends StatelessWidget {
                   height: 38,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.accent],
+                      colors: [Color(0xFF4F46E5), Color(0xFF06B6D4)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: Color(0x4D4F46E5),
+                        blurRadius: 10,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
                   child: const Center(
-                    child: Icon(Icons.school_rounded, color: Colors.white, size: 20),
+                    child: Icon(Icons.school_rounded, color: Colors.white, size: 21),
                   ),
                 ),
                 if (isExpanded) ...[
@@ -132,7 +132,7 @@ class DesktopSidebar extends StatelessWidget {
                             color: Colors.white,
                             fontSize: 14.5,
                             fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.6,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -141,7 +141,7 @@ class DesktopSidebar extends StatelessWidget {
                         Text(
                           "Class 10th Board • Pro",
                           style: TextStyle(
-                            color: Colors.white60,
+                            color: Color(0xFF94A3B8),
                             fontSize: 10.5,
                             fontWeight: FontWeight.w500,
                           ),
@@ -155,7 +155,7 @@ class DesktopSidebar extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     isExpanded ? Icons.menu_open_rounded : Icons.menu_rounded,
-                    color: Colors.white70,
+                    color: const Color(0xFF94A3B8),
                     size: 20,
                   ),
                   tooltip: isExpanded ? "Collapse Sidebar (Ctrl+B)" : "Expand Sidebar (Ctrl+B)",
@@ -168,7 +168,7 @@ class DesktopSidebar extends StatelessWidget {
             ),
           ),
 
-          // ── LIVE BROADCAST ALERT (If Live Stream is Active) ────────────────
+          // ── LIVE CLASS BROADCAST ALERT ────────────────────────────────────
           if (isCurrentlyLive)
             Padding(
               padding: EdgeInsets.all(isExpanded ? 12.0 : 8.0),
@@ -177,7 +177,7 @@ class DesktopSidebar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isExpanded ? 12 : 6,
+                    horizontal: isExpanded ? 12 : 8,
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
@@ -185,11 +185,11 @@ class DesktopSidebar extends StatelessWidget {
                       colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: const Color(0xFFDC2626).withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: Color(0x66DC2626),
+                        blurRadius: 10,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -213,7 +213,7 @@ class DesktopSidebar extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "CLASS IN PROGRESS",
+                                "LIVE IN PROGRESS",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -242,13 +242,29 @@ class DesktopSidebar extends StatelessWidget {
               ),
             ),
 
+          // ── NAVIGATION SECTION HEADER ─────────────────────────────────────
+          if (isExpanded)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                "NAVIGATION",
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            )
+          else
+            const SizedBox(height: 12),
+
           // ── NAVIGATION ITEMS LIST ─────────────────────────────────────────
-          const SizedBox(height: 12),
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: isExpanded ? 10 : 8),
               itemCount: _navEntries.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              separatorBuilder: (_, __) => const SizedBox(height: 5),
               itemBuilder: (context, index) {
                 final entry = _navEntries[index];
                 final isSelected = currentIndex == entry.index;
@@ -275,7 +291,7 @@ class DesktopSidebar extends StatelessWidget {
             ),
           ),
 
-          // ── QUICK AI DOUBT SOLVER BUTTON (When Expanded) ──────────────────
+          // ── QUICK AI DOUBT SOLVER CARD ────────────────────────────────────
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -285,18 +301,15 @@ class DesktopSidebar extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.18),
-                        AppColors.accent.withValues(alpha: 0.12),
-                      ],
+                    gradient: const LinearGradient(
+                      colors: [Color(0x264F46E5), Color(0x1A06B6D4)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.35),
-                      width: 1,
+                      color: const Color(0x4D6366F1),
+                      width: 1.2,
                     ),
                   ),
                   child: Row(
@@ -304,12 +317,12 @@ class DesktopSidebar extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.accent.withValues(alpha: 0.2),
+                          color: const Color(0x336366F1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
                           Icons.auto_awesome_rounded,
-                          color: AppColors.accent,
+                          color: Color(0xFF38BDF8),
                           size: 18,
                         ),
                       ),
@@ -329,7 +342,7 @@ class DesktopSidebar extends StatelessWidget {
                             Text(
                               "Instant Study Assistant",
                               style: TextStyle(
-                                color: Colors.white60,
+                                color: Color(0xFF94A3B8),
                                 fontWeight: FontWeight.w500,
                                 fontSize: 10.5,
                               ),
@@ -337,7 +350,7 @@ class DesktopSidebar extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white60, size: 16),
+                      const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 16),
                     ],
                   ),
                 ),
@@ -347,7 +360,7 @@ class DesktopSidebar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Tooltip(
-                message: "Ask AI Doubt Assistant",
+                message: "Ask AI Doubt Assistant (Ctrl+K)",
                 preferBelow: false,
                 margin: const EdgeInsets.only(left: 80),
                 child: InkWell(
@@ -357,13 +370,13 @@ class DesktopSidebar extends StatelessWidget {
                     height: 44,
                     width: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.20),
+                      color: const Color(0x264F46E5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+                      border: Border.all(color: const Color(0x4D6366F1)),
                     ),
                     child: const Icon(
                       Icons.auto_awesome_rounded,
-                      color: AppColors.accent,
+                      color: Color(0xFF38BDF8),
                       size: 20,
                     ),
                   ),
@@ -379,7 +392,7 @@ class DesktopSidebar extends StatelessWidget {
             ),
             decoration: const BoxDecoration(
               border: Border(
-                top: BorderSide(color: Colors.white10, width: 1.0),
+                top: BorderSide(color: Color(0xFF1E293B), width: 1.0),
               ),
             ),
             child: InkWell(
@@ -389,17 +402,35 @@ class DesktopSidebar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 17,
-                      backgroundColor: AppColors.primary,
-                      child: Text(
-                        studentName.isNotEmpty ? studentName[0].toUpperCase() : 'S',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        CircleAvatar(
+                          radius: 17,
+                          backgroundColor: AppColors.primary,
+                          child: Text(
+                            studentName.isNotEmpty ? studentName[0].toUpperCase() : 'S',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          right: -1,
+                          bottom: -1,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFF0B101E), width: 1.5),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     if (isExpanded) ...[
                       const SizedBox(width: 10),
@@ -419,20 +450,20 @@ class DesktopSidebar extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const Text(
-                              "Class 10 Student",
+                              "Class 10 Student • Online",
                               style: TextStyle(
-                                color: Colors.white60,
+                                color: Color(0xFF94A3B8),
                                 fontWeight: FontWeight.w500,
-                                fontSize: 11,
+                                fontSize: 10.5,
                               ),
                             ),
                           ],
                         ),
                       ),
                       const Icon(
-                        Icons.settings_outlined,
-                        color: Colors.white60,
-                        size: 16,
+                        Icons.chevron_right_rounded,
+                        color: Color(0xFF64748B),
+                        size: 18,
                       ),
                     ],
                   ],
@@ -490,43 +521,31 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
             horizontal: isExpanded ? 12 : 8,
           ),
           decoration: BoxDecoration(
+            gradient: isSelected
+                ? const LinearGradient(
+                    colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
             color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.22)
-                : (_isHovered
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.transparent),
+                ? null
+                : (_isHovered ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.accent.withValues(alpha: 0.5)
-                  : (_isHovered
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.transparent),
-              width: 1.0,
-            ),
+            boxShadow: isSelected
+                ? const [
+                    BoxShadow(
+                      color: Color(0x404F46E5),
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisAlignment:
                 isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
             children: [
-              // Active Indicator Bar (Left Edge)
-              if (isSelected && isExpanded)
-                Container(
-                  width: 3.5,
-                  height: 20,
-                  margin: const EdgeInsets.only(right: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.8),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                ),
-
               // Icon with Beacon
               Stack(
                 clipBehavior: Clip.none,
@@ -536,8 +555,8 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                     isSelected ? widget.entry.activeIcon : widget.entry.icon,
                     size: 20,
                     color: isSelected
-                        ? AppColors.accent
-                        : (_isHovered ? Colors.white : Colors.white70),
+                        ? Colors.white
+                        : (_isHovered ? Colors.white : const Color(0xFF94A3B8)),
                   ),
                   if (widget.isCurrentlyLive)
                     Positioned(
@@ -546,13 +565,13 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                       child: Container(
                         width: 7,
                         height: 7,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.liveRed,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.liveRed.withValues(alpha: 0.8),
-                              blurRadius: 4,
+                              color: Color(0xCCFF2A4B),
+                              blurRadius: 6,
                             ),
                           ],
                         ),
@@ -574,7 +593,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
-                              : (_isHovered ? Colors.white : Colors.white70),
+                              : (_isHovered ? Colors.white : const Color(0xFFE2E8F0)),
                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -584,9 +603,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                       Text(
                         widget.entry.subtitle,
                         style: TextStyle(
-                          color: isSelected
-                              ? AppColors.textSecondary.withValues(alpha: 0.8)
-                              : Colors.white38,
+                          color: isSelected ? const Color(0xFFC7D2FE) : const Color(0xFF64748B),
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
@@ -668,15 +685,15 @@ class DesktopTopBar extends StatelessWidget {
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
-        border: const Border(
-          bottom: BorderSide(color: Colors.white12, width: 1.0),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F172A),
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF1E293B), width: 1.0),
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
+            color: Color(0x1A000000),
+            blurRadius: 10,
             offset: Offset(0, 2),
           ),
         ],
@@ -687,30 +704,35 @@ class DesktopTopBar extends StatelessWidget {
           IconButton(
             icon: Icon(
               isSidebarExpanded ? Icons.menu_open_rounded : Icons.menu_rounded,
-              color: Colors.white70,
+              color: const Color(0xFF94A3B8),
               size: 20,
             ),
-            tooltip: isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar",
+            tooltip: isSidebarExpanded ? "Collapse Sidebar (Ctrl+B)" : "Expand Sidebar (Ctrl+B)",
             onPressed: onToggleSidebar,
             splashRadius: 20,
           ),
           const SizedBox(width: 8),
 
-          // Breadcrumb Title
+          // Breadcrumbs
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8), size: 15),
+              const SizedBox(width: 6),
               const Text(
                 "Dashboard",
                 style: TextStyle(
-                  color: Colors.white54,
+                  color: Color(0xFF94A3B8),
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 16),
+                child: Text(
+                  "/",
+                  style: TextStyle(color: Color(0xFF475569), fontSize: 13),
+                ),
               ),
               Text(
                 _currentTabTitle,
@@ -726,7 +748,48 @@ class DesktopTopBar extends StatelessWidget {
 
           const Spacer(),
 
-          // Live Broadcast Alert (Center / Right)
+          // Search Pill (Direct shortcut to Study Material Tab)
+          InkWell(
+            onTap: () => onTabSelected(1),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 220,
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.search_rounded, color: Color(0xFF64748B), size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Search syllabus & notes...",
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 11.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    "Ctrl+2",
+                    style: TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Live Broadcast Alert (If live)
           if (isCurrentlyLive) ...[
             InkWell(
               onTap: onOpenLiveClass,
@@ -738,9 +801,9 @@ class DesktopTopBar extends StatelessWidget {
                     colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFFDC2626).withValues(alpha: 0.4),
+                      color: Color(0x66DC2626),
                       blurRadius: 8,
                     ),
                   ],
@@ -758,7 +821,7 @@ class DesktopTopBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 240),
+                      constraints: const BoxConstraints(maxWidth: 200),
                       child: Text(
                         "LIVE: $liveTitle",
                         style: const TextStyle(
@@ -776,27 +839,28 @@ class DesktopTopBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
           ],
 
           // Quick AI Doubt Pill
           InkWell(
             onTap: onOpenAiDoubts,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
+                color: const Color(0x264F46E5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0x4D6366F1)),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.auto_awesome_rounded, color: AppColors.accent, size: 15),
+                  Icon(Icons.auto_awesome_rounded, color: Color(0xFF38BDF8), size: 15),
                   SizedBox(width: 6),
                   Text(
-                    "AI Doubt Solver",
+                    "AI Doubt",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -814,7 +878,7 @@ class DesktopTopBar extends StatelessWidget {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.notifications_outlined, color: Colors.white70, size: 20),
+                const Icon(Icons.notifications_outlined, color: Color(0xFF94A3B8), size: 20),
                 Positioned(
                   top: -2,
                   right: -2,
@@ -822,14 +886,14 @@ class DesktopTopBar extends StatelessWidget {
                     width: 7,
                     height: 7,
                     decoration: const BoxDecoration(
-                      color: AppColors.accent,
+                      color: Color(0xFF38BDF8),
                       shape: BoxShape.circle,
                     ),
                   ),
                 ),
               ],
             ),
-            tooltip: "Notifications & Updates",
+            tooltip: "Announcements & Updates",
             onPressed: onNotificationsTap,
             splashRadius: 20,
           ),
@@ -837,29 +901,29 @@ class DesktopTopBar extends StatelessWidget {
 
           // Platform Mode Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white10),
+              color: const Color(0x1A10B981),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0x3310B981)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.dark_mode_rounded, color: AppColors.accent, size: 13),
-                SizedBox(width: 5),
+                Icon(Icons.verified_rounded, color: Color(0xFF34D399), size: 12),
+                SizedBox(width: 4),
                 Text(
-                  "Dark Pro",
+                  "SSC 2026",
                   style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF34D399),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
 
           // Profile Pill
           InkWell(
@@ -868,9 +932,9 @@ class DesktopTopBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: const Color(0xFF1E293B)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -897,7 +961,7 @@ class DesktopTopBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white54, size: 16),
+                  const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF94A3B8), size: 16),
                 ],
               ),
             ),

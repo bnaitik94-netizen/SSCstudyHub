@@ -437,10 +437,10 @@ class _MainDashboardState extends State<MainDashboard> {
           );
         }
 
-        if (kIsWeb) {
+        if (kIsWeb && !isDesktop) {
           content = Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
+              constraints: const BoxConstraints(maxWidth: 520),
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [

@@ -20,10 +20,10 @@ class AppColors {
   static const Color cosmicYellowDeep = Color(0xFF78350F);
   static const Color cosmicYellowVibrant = Color(0xFFFBBF24);
 
-  // Modern Luminous Ambient Background Colors (Noticeably lighter, radiant aurora twilight)
-  static const Color backgroundTop = Color(0xFF162544);
-  static const Color backgroundMiddle = Color(0xFF233660);
-  static const Color backgroundBottom = Color(0xFF1B2C52);
+  // Modern Ultra-Professional Slate Background
+  static const Color backgroundTop = Color(0xFF0B1120);
+  static const Color backgroundMiddle = Color(0xFF0F172A);
+  static const Color backgroundBottom = Color(0xFF090D16);
   static const Color glowBlue = Color(0xFF60A5FA);
   static const Color glowIndigo = Color(0xFF818CF8);
   static const Color glowCyan = Color(0xFF38BDF8);
