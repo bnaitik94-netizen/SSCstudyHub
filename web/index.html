@@ -65,6 +65,26 @@
       return Promise.resolve();
     };
 
+    // UNIVERSAL SCREEN WAKELOCK (PREVENTS SLEEP WHILE CLASS / APP IS RUNNING)
+    var sscWakeLock = null;
+    async function requestScreenWakeLock() {
+      try {
+        if ('wakeLock' in navigator && !sscWakeLock) {
+          sscWakeLock = await navigator.wakeLock.request('screen');
+          sscWakeLock.addEventListener('release', function() {
+            sscWakeLock = null;
+          });
+        }
+      } catch(err) {}
+    }
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        requestScreenWakeLock();
+      }
+    });
+    window.addEventListener('load', requestScreenWakeLock);
+    window.addEventListener('click', requestScreenWakeLock, { once: true });
+
     window.sendYouTubePlayerCommand = function(command, args) {
       function findIframes(root) {
         var found = [];

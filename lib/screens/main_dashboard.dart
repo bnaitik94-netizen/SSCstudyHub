@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -9,27 +10,70 @@ import '../tabs/profile_tab.dart';
 import '../utils/app_colors.dart';
 import '../screens/live_class_room.dart';
 import '../services/notification_service.dart';
+import '../utils/web_navigation_helper.dart';
 
 class MainDashboard extends StatefulWidget {
   final String studentName;
+  final int initialTab;
 
-  const MainDashboard({super.key, required this.studentName});
+  const MainDashboard({
+    super.key,
+    required this.studentName,
+    this.initialTab = 0,
+  });
 
   @override
   State<MainDashboard> createState() => _MainDashboardState();
 }
 
 class _MainDashboardState extends State<MainDashboard> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late String _studentName;
+  StreamSubscription? _popStateSub;
+
+  static const List<String> _tabRoutes = [
+    '/home',
+    '/study',
+    '/classes',
+    '/profile',
+  ];
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = (widget.initialTab >= 0 && widget.initialTab < _tabRoutes.length)
+        ? widget.initialTab
+        : 0;
     _studentName = widget.studentName;
+
+    if (kIsWeb) {
+      WebNavigationHelper.replaceUrl(_tabRoutes[_currentIndex]);
+      final sub = WebNavigationHelper.listenPopState((path) {
+        if (!mounted) return;
+        if (path.contains('/study')) {
+          setState(() => _currentIndex = 1);
+        } else if (path.contains('/classes') || path.contains('/schedule')) {
+          setState(() => _currentIndex = 2);
+        } else if (path.contains('/profile')) {
+          setState(() => _currentIndex = 3);
+        } else if (path.contains('/home') || path == '/') {
+          setState(() => _currentIndex = 0);
+        }
+      });
+      if (sub is StreamSubscription) {
+        _popStateSub = sub;
+      }
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService().checkAndPromptPermission(context);
     });
+  }
+
+  @override
+  void dispose() {
+    _popStateSub?.cancel();
+    super.dispose();
   }
 
   void _updateStudentName(String newName) {
@@ -40,6 +84,9 @@ class _MainDashboardState extends State<MainDashboard> {
     if (_currentIndex == index) return;
     HapticFeedback.lightImpact();
     setState(() => _currentIndex = index);
+    if (kIsWeb && index >= 0 && index < _tabRoutes.length) {
+      WebNavigationHelper.updateUrl(_tabRoutes[index]);
+    }
   }
 
   Widget _buildDesktopHeader(bool isCurrentlyLive, String liveTitle, String liveVideoId) {

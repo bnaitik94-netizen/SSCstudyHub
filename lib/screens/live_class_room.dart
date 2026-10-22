@@ -14,6 +14,7 @@ import '../widgets/live_session_panel.dart';
 import '../widgets/doubts_panel.dart';
 import '../widgets/floating_reactions.dart';
 import '../utils/web_fullscreen_helper.dart';
+import '../utils/web_navigation_helper.dart';
 
 class LiveClassRoom extends StatefulWidget {
   final String userName;
@@ -123,6 +124,11 @@ class _LiveClassRoomState extends State<LiveClassRoom>
     // ⚡ INSTANT PLAYBACK & POSITION RECOVERY
     _playerController.addListener(_onPlayerStateChanged);
 
+    // 💡 KEEP SCREEN ON: Prevents screen from sleeping/locking while watching live class
+    try {
+      WakelockPlus.enable();
+    } catch (_) {}
+
     if (!kIsWeb) {
       // 🔄 PERMIT NATURAL ROTATION: Allow phone auto-rotation seamlessly
       SystemChrome.setPreferredOrientations([
@@ -131,9 +137,8 @@ class _LiveClassRoomState extends State<LiveClassRoom>
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
-      // 💡 KEEP SCREEN ON: Prevents phone from sleeping/locking while watching live class
-      WakelockPlus.enable();
     } else {
+      WebNavigationHelper.updateUrl('/live?v=$_videoId');
       _fullscreenSubscription = WebFullscreenHelper.listenFullscreenChange((isFs) {
         if (mounted) {
           setState(() {
@@ -208,8 +213,11 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
   @override
   void dispose() {
-    if (!kIsWeb) {
+    try {
       WakelockPlus.disable();
+    } catch (_) {}
+    if (kIsWeb) {
+      WebNavigationHelper.updateUrl('/home');
     }
     _registerAttendance(false);
     WidgetsBinding.instance.removeObserver(this);
@@ -437,6 +445,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
           fit: StackFit.expand,
           children: [
             getWebYouTubePlayer(
+              key: ValueKey('live_web_player_$_videoId'),
               videoId: _videoId,
               isLive: true,
               autoPlay: true,

@@ -33,6 +33,7 @@ import '../utils/app_colors.dart';
 import '../widgets/doubts_panel.dart';
 import '../widgets/web_player_loader.dart';
 import '../utils/web_fullscreen_helper.dart';
+import '../utils/web_navigation_helper.dart';
 
 /// Platform-aware pointer interceptor:
 /// Only activates on Web to stop iframe click stealing.
@@ -301,7 +302,12 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    try {
+      WakelockPlus.enable();
+    } catch (_) {}
+
     if (kIsWeb) {
+      WebNavigationHelper.updateUrl('/watch?v=$_videoId');
       _fullscreenSub = WebFullscreenHelper.listenFullscreenChange((isFs) {
         if (mounted) setState(() {});
       });
@@ -371,6 +377,14 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+
+    try {
+      WakelockPlus.disable();
+    } catch (_) {}
+
+    if (kIsWeb) {
+      WebNavigationHelper.updateUrl('/classes');
+    }
 
     for (final timer in <Timer?>[
       _overlayTimer,
@@ -1068,6 +1082,7 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
         color: Colors.black,
         child: SizedBox.expand(
           child: getWebYouTubePlayer(
+            key: ValueKey('past_web_player_$_videoId'),
             videoId: _videoId,
             isLive: false,
             autoPlay: true,

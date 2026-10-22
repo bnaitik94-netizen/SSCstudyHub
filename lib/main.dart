@@ -9,6 +9,7 @@ import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'firebase_options.dart'; 
 import 'services/notification_service.dart';
+import 'utils/url_strategy_helper.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -22,6 +23,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🌐 Enable clean HTML5 web URL routing (/home, /study, /classes, /live)
+  setupUrlStrategy();
 
   try {
     if (Firebase.apps.isEmpty) {
@@ -133,7 +137,33 @@ class SSCStudyHubApp extends StatelessWidget {
           systemOverlayStyle: SystemUiOverlayStyle.light,
         ),
       ),
-      home: const SplashScreen(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        final uri = Uri.parse(settings.name ?? '/');
+        final path = uri.path.toLowerCase();
+
+        if (path == '/home' ||
+            path == '/study' ||
+            path == '/classes' ||
+            path == '/schedule' ||
+            path == '/profile' ||
+            path == '/live' ||
+            path == '/watch' ||
+            path == '/player') {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => SplashScreen(
+              targetRoute: path,
+              queryParams: uri.queryParameters,
+            ),
+          );
+        }
+
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SplashScreen(),
+        );
+      },
       debugShowCheckedModeBanner: false,
     );
   }

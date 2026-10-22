@@ -7,11 +7,20 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/prewarm_service.dart';
 import 'name_input_screen.dart';
 import 'main_dashboard.dart';
+import 'live_class_room.dart';
+import 'past_class_player.dart';
 
 /// 🌙 SIMPLE, SLEEK & DARK LOADING SCREEN
 /// Fast, clean, lag-free minimal dark study theme matching the app aesthetic
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final String? targetRoute;
+  final Map<String, String>? queryParams;
+
+  const SplashScreen({
+    super.key,
+    this.targetRoute,
+    this.queryParams,
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -79,13 +88,51 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
+    final hasValidName = studentName != null && studentName.trim().isNotEmpty;
+    final effectiveName = hasValidName ? studentName.trim() : 'Student';
+
+    Widget targetWidget;
+    int tabIndex = 0;
+    if (widget.targetRoute == '/study') {
+      tabIndex = 1;
+    } else if (widget.targetRoute == '/classes' || widget.targetRoute == '/schedule') {
+      tabIndex = 2;
+    } else if (widget.targetRoute == '/profile') {
+      tabIndex = 3;
+    }
+
+    if (!hasValidName) {
+      targetWidget = const NameInputScreen();
+    } else if (widget.targetRoute == '/live') {
+      final videoId = widget.queryParams?['v'] ??
+          AppPrewarmService.instance.currentVideoId ??
+          '';
+      final title = AppPrewarmService.instance.currentSessionData?['title'] ?? 'Live Lecture';
+      targetWidget = LiveClassRoom(
+        userName: effectiveName,
+        videoId: videoId,
+        title: title,
+        isAdmin: false,
+      );
+    } else if (widget.targetRoute == '/watch' || widget.targetRoute == '/player') {
+      final videoId = widget.queryParams?['v'] ?? '';
+      final title = widget.queryParams?['title'] ?? 'Recorded Class';
+      targetWidget = PastClassPlayerScreen(
+        videoId: videoId,
+        title: title,
+      );
+    } else {
+      targetWidget = MainDashboard(
+        studentName: effectiveName,
+        initialTab: tabIndex,
+      );
+    }
+
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (_, __, ___) => (studentName != null && studentName.trim().isNotEmpty)
-            ? MainDashboard(studentName: studentName)
-            : const NameInputScreen(),
+        pageBuilder: (_, __, ___) => targetWidget,
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
       ),
