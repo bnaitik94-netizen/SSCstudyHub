@@ -11,6 +11,8 @@ import '../utils/app_colors.dart';
 import '../screens/live_class_room.dart';
 import '../services/notification_service.dart';
 import '../utils/web_navigation_helper.dart';
+import '../widgets/desktop_navigation.dart';
+import '../widgets/doubts_panel.dart';
 
 class MainDashboard extends StatefulWidget {
   final String studentName;
@@ -30,6 +32,7 @@ class _MainDashboardState extends State<MainDashboard> {
   late int _currentIndex;
   late String _studentName;
   StreamSubscription? _popStateSub;
+  bool _isSidebarExpanded = true;
 
   static const List<String> _tabRoutes = [
     '/home',
@@ -89,193 +92,128 @@ class _MainDashboardState extends State<MainDashboard> {
     }
   }
 
-  Widget _buildDesktopHeader(bool isCurrentlyLive, String liveTitle, String liveVideoId) {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
-        border: const Border(
-          bottom: BorderSide(color: Colors.white12, width: 1),
+  void _openAiDoubtSolver() {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Color(0xFF162544),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(
+            top: BorderSide(color: Color(0x66FFFFFF), width: 1.2),
+          ),
         ),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 2)),
-        ],
+        child: const ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          child: DoubtsPanel(),
+        ),
       ),
-      child: Row(
-        children: [
-          // Logo & Brand
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.accent],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.school_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "SSC STUDY HUB PRO",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  Text(
-                    "Class 10th Board · Live Platform",
-                    style: TextStyle(
-                      color: Colors.white60,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-          // Desktop Navigation Tabs
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDesktopNavButton(0, "Home", Icons.home_rounded),
-              const SizedBox(width: 8),
-              _buildDesktopNavButton(1, "Study Material", Icons.menu_book_rounded),
-              const SizedBox(width: 8),
-              _buildDesktopNavButton(2, "Live Schedule", Icons.event_note_rounded),
-              const SizedBox(width: 8),
-              _buildDesktopNavButton(3, "Profile", Icons.person_rounded),
-            ],
-          ),
-          const Spacer(),
-          // Live Class CTA if live
-          if (isCurrentlyLive && liveVideoId.isNotEmpty) ...[
-            InkWell(
-              onTap: () {
-                HapticFeedback.mediumImpact();
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 140),
-                    pageBuilder: (_, __, ___) => LiveClassRoom(
-                      userName: _studentName,
-                      videoId: liveVideoId,
-                      title: liveTitle,
-                      isAdmin: false,
-                    ),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x66DC2626), blurRadius: 10, offset: Offset(0, 2)),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, color: Colors.white, size: 10),
-                    SizedBox(width: 8),
-                    Text(
-                      "LIVE CLASS IN PROGRESS",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
-                  ],
-                ),
-              ),
+    );
+  }
+
+  void _openLiveClass(String liveVideoId, String liveTitle) {
+    if (liveVideoId.isEmpty) return;
+    HapticFeedback.mediumImpact();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 140),
+        pageBuilder: (_, __, ___) => LiveClassRoom(
+          userName: _studentName,
+          videoId: liveVideoId,
+          title: liveTitle,
+          isAdmin: false,
+        ),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
+  }
+
+  void _showNotificationsDialog() {
+    HapticFeedback.lightImpact();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white12),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.notifications_active_rounded, color: AppColors.accent, size: 22),
+            SizedBox(width: 10),
+            Text(
+              "Announcements",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
             ),
-            const SizedBox(width: 16),
           ],
-          // Profile Chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white12),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildNotificationItem(
+              title: "Welcome to SSC Study Hub Pro",
+              body: "All syllabus PDFs, live lectures, and AI doubt clearing are active.",
+              time: "Just now",
+              icon: Icons.school_rounded,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 13,
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    _studentName.isNotEmpty ? _studentName[0].toUpperCase() : 'S',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _studentName,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-              ],
+            const Divider(color: Colors.white12, height: 20),
+            _buildNotificationItem(
+              title: "Exam Countdown Active",
+              body: "Check the Live Schedule tab for daily revision class timings.",
+              time: "Today",
+              icon: Icons.event_note_rounded,
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Got it", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDesktopNavButton(int index, String label, IconData icon) {
-    final isSelected = _currentIndex == index;
-    return InkWell(
-      onTap: () => _onTabTapped(index),
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.25) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.accent.withValues(alpha: 0.6) : Colors.transparent,
-            width: 1.2,
+  Widget _buildNotificationItem({
+    required String title,
+    required String body,
+    required String time,
+    required IconData icon,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.accent, size: 18),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5)),
+              const SizedBox(height: 3),
+              Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(height: 4),
+              Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+            ],
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? AppColors.accent : Colors.white70,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -321,20 +259,77 @@ class _MainDashboardState extends State<MainDashboard> {
 
         Widget content;
         if (isDesktop) {
-          content = Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Column(
-              children: [
-                _buildDesktopHeader(isCurrentlyLive, liveTitle, liveVideoId),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1320),
-                      child: RepaintBoundary(child: pageBody),
+          content = CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.keyB, control: true): () {
+                setState(() => _isSidebarExpanded = !_isSidebarExpanded);
+              },
+              const SingleActivator(LogicalKeyboardKey.keyB, meta: true): () {
+                setState(() => _isSidebarExpanded = !_isSidebarExpanded);
+              },
+              const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => _onTabTapped(0),
+              const SingleActivator(LogicalKeyboardKey.digit1, meta: true): () => _onTabTapped(0),
+              const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => _onTabTapped(1),
+              const SingleActivator(LogicalKeyboardKey.digit2, meta: true): () => _onTabTapped(1),
+              const SingleActivator(LogicalKeyboardKey.digit3, control: true): () => _onTabTapped(2),
+              const SingleActivator(LogicalKeyboardKey.digit3, meta: true): () => _onTabTapped(2),
+              const SingleActivator(LogicalKeyboardKey.digit4, control: true): () => _onTabTapped(3),
+              const SingleActivator(LogicalKeyboardKey.digit4, meta: true): () => _onTabTapped(3),
+              const SingleActivator(LogicalKeyboardKey.keyK, control: true): _openAiDoubtSolver,
+              const SingleActivator(LogicalKeyboardKey.keyK, meta: true): _openAiDoubtSolver,
+            },
+            child: Focus(
+              autofocus: true,
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Row(
+                  children: [
+                    DesktopSidebar(
+                      currentIndex: _currentIndex,
+                      onTabSelected: _onTabTapped,
+                      isExpanded: _isSidebarExpanded,
+                      onToggleExpand: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _isSidebarExpanded = !_isSidebarExpanded);
+                      },
+                      studentName: _studentName,
+                      isCurrentlyLive: isCurrentlyLive,
+                      liveTitle: liveTitle,
+                      onOpenAiDoubts: _openAiDoubtSolver,
+                      onOpenLiveClass: () => _openLiveClass(liveVideoId, liveTitle),
                     ),
-                  ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          DesktopTopBar(
+                            currentIndex: _currentIndex,
+                            studentName: _studentName,
+                            isCurrentlyLive: isCurrentlyLive,
+                            liveTitle: liveTitle,
+                            isSidebarExpanded: _isSidebarExpanded,
+                            onToggleSidebar: () {
+                              HapticFeedback.lightImpact();
+                              setState(() => _isSidebarExpanded = !_isSidebarExpanded);
+                            },
+                            onOpenAiDoubts: _openAiDoubtSolver,
+                            onOpenLiveClass: () => _openLiveClass(liveVideoId, liveTitle),
+                            onNotificationsTap: _showNotificationsDialog,
+                            onTabSelected: _onTabTapped,
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 1360),
+                                child: RepaintBoundary(child: pageBody),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         } else {

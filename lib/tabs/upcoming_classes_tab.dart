@@ -19,9 +19,64 @@ class UpcomingClassesTab extends StatefulWidget {
 }
 
 class _UpcomingClassesTabState extends State<UpcomingClassesTab> {
+  int _filterIndex = 0; // 0: All, 1: Scheduled, 2: Recorded
+
   Future<void> _handleRefresh() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) setState(() {});
+  }
+
+  Widget _buildFilterTab(int index, String label, IconData icon) {
+    final bool isSelected = _filterIndex == index;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _filterIndex = index);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected ? Colors.white : Colors.white70,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.white70,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -45,58 +100,84 @@ class _UpcomingClassesTabState extends State<UpcomingClassesTab> {
         onRefresh: _handleRefresh,
         color: AppColors.primary,
         backgroundColor: AppColors.surfaceDark,
-        child: const CustomScrollView(
-          physics: AlwaysScrollableScrollPhysics(
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: 22.0, vertical: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.event_note_rounded,
-                            size: 18, color: AppColors.accent),
-                        SizedBox(width: 8),
-                        Text(
-                          "Next Scheduled Lecture",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                    // Fitted Filter Tabs
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          _buildFilterTab(0, "All Classes", Icons.apps_rounded),
+                          _buildFilterTab(1, "Scheduled", Icons.event_note_rounded),
+                          _buildFilterTab(2, "Recorded", Icons.video_library_rounded),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 14),
-                    _UpcomingStreamCard(),
-                    SizedBox(height: 28),
-                    Row(
-                      children: [
-                        Icon(Icons.video_library_rounded,
-                            size: 18, color: AppColors.primaryLight),
-                        SizedBox(width: 8),
-                        Text(
-                          "Recorded Classes & Archives",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                    const SizedBox(height: 18),
+
+                    if (_filterIndex == 0 || _filterIndex == 1) ...[
+                      const Row(
+                        children: [
+                          Icon(Icons.event_note_rounded,
+                              size: 18, color: AppColors.accent),
+                          SizedBox(width: 8),
+                          Text(
+                            "Next Scheduled Lecture",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 14),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const _UpcomingStreamCard(),
+                      const SizedBox(height: 28),
+                    ],
+
+                    if (_filterIndex == 0 || _filterIndex == 2) ...[
+                      const Row(
+                        children: [
+                          Icon(Icons.video_library_rounded,
+                              size: 18, color: AppColors.primaryLight),
+                          SizedBox(width: 8),
+                          Text(
+                            "Recorded Classes & Archives",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                   ],
                 ),
               ),
             ),
-            _PastClassesList(),
-            SliverToBoxAdapter(
+            if (_filterIndex == 0 || _filterIndex == 2)
+              const _PastClassesList(),
+            const SliverToBoxAdapter(
               child: SizedBox(height: 120), // Clearance for floating liquid glass tab bar
             ),
           ],
