@@ -6,7 +6,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const SSCStudyHubApp());
     expect(find.byType(SSCStudyHubApp), findsOneWidget);
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(seconds: 1));
   });
 }

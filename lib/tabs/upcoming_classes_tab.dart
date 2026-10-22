@@ -650,102 +650,128 @@ class _PastClassesList extends StatelessWidget {
           );
         }
 
+        final bool isDesktop = MediaQuery.of(context).size.width >= 850;
+
+        Widget buildPastClassCard(Map<String, dynamic> data, int index) {
+          DateTime? date;
+          if (data['timestamp'] != null) {
+            date = (data['timestamp'] as Timestamp).toDate();
+          }
+          String formattedDate = date != null
+              ? DateFormat('dd MMM, yyyy • hh:mm a').format(date)
+              : "Recently added";
+
+          final rawVideoId = data['youtubeVideoId']?.toString() ?? '';
+          final cleanVideoId = rawVideoId.contains('http')
+              ? (YoutubePlayer.convertUrlToId(rawVideoId) ?? rawVideoId)
+              : rawVideoId;
+
+          return Container(
+            decoration: AppColors.liquidGlassCard,
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.primaryLight.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.accent,
+                    size: 24,
+                  ),
+                ),
+                title: Text(
+                  data['title'] ?? 'Recorded Class',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    formattedDate,
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.accent,
+                    size: 18,
+                  ),
+                ),
+                onTap: () {
+                  if (cleanVideoId.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PastClassPlayerScreen(
+                          videoId: cleanVideoId,
+                          title: data['title'] ?? 'Recorded Class',
+                          restoreOrientations: const [
+                            DeviceOrientation.portraitUp,
+                            DeviceOrientation.portraitDown,
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          )
+              .animate()
+              .slideY(begin: 0.05, duration: 300.ms)
+              .fadeIn(delay: Duration(milliseconds: 30 * index));
+        }
+
+        if (isDesktop) {
+          return SliverPadding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 100),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 12,
+                mainAxisExtent: 80,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    buildPastClassCard(pastDocs[index].data() as Map<String, dynamic>, index),
+                childCount: pastDocs.length,
+              ),
+            ),
+          );
+        }
+
         return SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              var data = pastDocs[index].data() as Map<String, dynamic>;
-              DateTime? date;
-              if (data['timestamp'] != null) {
-                date = (data['timestamp'] as Timestamp).toDate();
-              }
-              String formattedDate = date != null
-                  ? DateFormat('dd MMM, yyyy • hh:mm a').format(date)
-                  : "Recently added";
-
-              final rawVideoId = data['youtubeVideoId']?.toString() ?? '';
-              final cleanVideoId = rawVideoId.contains('http')
-                  ? (YoutubePlayer.convertUrlToId(rawVideoId) ?? rawVideoId)
-                  : rawVideoId;
-
-              return Container(
-                margin: const EdgeInsets.only(left: 22, right: 22, bottom: 12),
-                decoration: AppColors.liquidGlassCard,
-                child: Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.primaryLight.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        color: AppColors.accent,
-                        size: 24,
-                      ),
-                    ),
-                    title: Text(
-                      data['title'] ?? 'Recorded Class',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        formattedDate,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.accent,
-                        size: 18,
-                      ),
-                    ),
-                    onTap: () {
-                      if (cleanVideoId.isNotEmpty) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PastClassPlayerScreen(
-                              videoId: cleanVideoId,
-                              title: data['title'] ?? 'Recorded Class',
-                              restoreOrientations: const [
-                                DeviceOrientation.portraitUp,
-                                DeviceOrientation.portraitDown,
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              )
-                  .animate()
-                  .slideY(begin: 0.05, duration: 300.ms)
-                  .fadeIn(delay: Duration(milliseconds: 30 * index));
+              return Padding(
+                padding: const EdgeInsets.only(left: 22, right: 22, bottom: 12),
+                child: buildPastClassCard(pastDocs[index].data() as Map<String, dynamic>, index),
+              );
             },
             childCount: pastDocs.length,
           ),

@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
+import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart'; 
 import 'services/notification_service.dart';
 import 'utils/url_strategy_helper.dart';
@@ -119,7 +120,7 @@ class SSCStudyHubApp extends StatelessWidget {
 
         return MediaQuery(
           data: mediaQueryData.copyWith(textScaler: constrainedTextScale),
-          child: body,
+          child: ConnectivityWrapper(child: body),
         );
       },
       theme: ThemeData(

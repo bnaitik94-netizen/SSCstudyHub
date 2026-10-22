@@ -175,12 +175,15 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-        child: Column(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 12),
@@ -429,6 +432,8 @@ class _ProfileTabState extends State<ProfileTab> {
             const SizedBox(
                 height: 120), // Bottom clearance for liquid glass tab bar
           ],
+        ),
+      ),
         ),
       ),
     );

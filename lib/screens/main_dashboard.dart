@@ -326,7 +326,14 @@ class _MainDashboardState extends State<MainDashboard> {
             body: Column(
               children: [
                 _buildDesktopHeader(isCurrentlyLive, liveTitle, liveVideoId),
-                Expanded(child: RepaintBoundary(child: pageBody)),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1320),
+                      child: RepaintBoundary(child: pageBody),
+                    ),
+                  ),
+                ),
               ],
             ),
           );
