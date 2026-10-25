@@ -11,13 +11,11 @@ import '../widgets/doubts_panel.dart';
 class HomeTab extends StatefulWidget {
   final String studentName;
   final ValueChanged<int>? onNavigateTab;
-  final VoidCallback? onNotificationsTap;
 
   const HomeTab({
     super.key,
     required this.studentName,
     this.onNavigateTab,
-    this.onNotificationsTap,
   });
 
   @override
@@ -119,75 +117,39 @@ class _HomeTabState extends State<HomeTab> {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.onNotificationsTap != null) ...[
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: const Color(0xFF1E293B),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(
-                                Icons.notifications_active_outlined,
-                                color: AppColors.accent,
-                                size: 21,
-                              ),
-                              onPressed: widget.onNotificationsTap,
-                              tooltip: "Announcements",
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [AppColors.primary, AppColors.accent],
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.45),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.45),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            widget.studentName.isNotEmpty
-                                ? widget.studentName[0].toUpperCase()
-                                : 'S',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, AppColors.accent],
                         ),
-                      ],
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.45),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.45),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.studentName.isNotEmpty
+                            ? widget.studentName[0].toUpperCase()
+                            : 'S',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                   ],
                 ).animate().fadeIn(duration: 350.ms).slideY(begin: -0.05),
