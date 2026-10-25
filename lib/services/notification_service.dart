@@ -18,6 +18,9 @@ class NotificationService {
   final Set<String> _processedNotificationIds = {};
   final Set<String> _recentAlertKeys = {};
 
+  static const MethodChannel _nativeChannel =
+      MethodChannel('com.example.teacher_live_app/notifications');
+
   /// Global key to access root navigator
   static GlobalKey<NavigatorState>? navigatorKey;
 
@@ -32,6 +35,24 @@ class NotificationService {
           .limit(20)
           .snapshots();
 
+  /// Invokes native Android NotificationManager to display heads-up system tray notification
+  static Future<void> _showNativeNotification({
+    required String title,
+    required String body,
+    String? videoId,
+  }) async {
+    if (kIsWeb) return;
+    try {
+      await _nativeChannel.invokeMethod('showSystemNotification', {
+        'title': title,
+        'body': body,
+        'videoId': videoId ?? '',
+      });
+    } catch (e) {
+      debugPrint("Native notification invocation warning: $e");
+    }
+  }
+
   /// Initialize all push notification channels, permissions, and topic subscriptions
   Future<void> initialize() async {
     if (_initialized) return;
@@ -39,6 +60,27 @@ class NotificationService {
 
     try {
       if (!kIsWeb) {
+        // Register listener for native app opened intent
+        _nativeChannel.setMethodCallHandler((call) async {
+          if (call.method == 'onNotificationOpened') {
+            final videoId = call.arguments?['videoId']?.toString();
+            debugPrint("Native notification opened with videoId: $videoId");
+            _handleNotificationTap(videoId);
+          }
+        });
+
+        // Check if app was started cold from native notification intent
+        try {
+          final String? initialVideoId =
+              await _nativeChannel.invokeMethod('getInitialNotification');
+          if (initialVideoId != null && initialVideoId.isNotEmpty) {
+            debugPrint("Cold launch from native notification: $initialVideoId");
+            Future.delayed(const Duration(milliseconds: 600), () {
+              _handleNotificationTap(initialVideoId);
+            });
+          }
+        } catch (_) {}
+
         // 1. 🔔 REQUEST PERMISSION (Mobile Android / iOS)
         final NotificationSettings settings = await _fcm.requestPermission(
           alert: true,
@@ -331,7 +373,7 @@ class NotificationService {
     });
   }
 
-  /// Shows floating Liquid Glass in-app notification banner
+  /// Shows floating Liquid Glass in-app notification banner & triggers native system tray alert
   void _showInAppAlert({
     required String title,
     required String body,
@@ -343,6 +385,13 @@ class NotificationService {
     if (_recentAlertKeys.contains(notifKey)) return;
     _recentAlertKeys.add(notifKey);
     Future.delayed(const Duration(seconds: 10), () => _recentAlertKeys.remove(notifKey));
+
+    // 2. 📱 Post native Android system notification into status bar / lock screen
+    _showNativeNotification(
+      title: title,
+      body: body,
+      videoId: youtubeVideoId,
+    );
 
     final isLive = type.toLowerCase().contains('live');
 

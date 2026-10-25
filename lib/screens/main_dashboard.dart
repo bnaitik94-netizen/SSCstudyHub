@@ -154,29 +154,112 @@ class _MainDashboardState extends State<MainDashboard> {
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildNotificationItem(
-              title: "Welcome to SSC Study Hub Pro",
-              body: "All syllabus PDFs, live lectures, and AI doubt clearing are active.",
-              time: "Just now",
-              icon: Icons.school_rounded,
-            ),
-            const Divider(color: Colors.white12, height: 20),
-            _buildNotificationItem(
-              title: "Exam Countdown Active",
-              body: "Check the Live Schedule tab for daily revision class timings.",
-              time: "Today",
-              icon: Icons.event_note_rounded,
-            ),
-          ],
+        content: SizedBox(
+          width: 440,
+          child: StreamBuilder<QuerySnapshot>(
+            stream: NotificationService.broadcastNotificationsStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
+                    ),
+                  ),
+                );
+              }
+
+              final docs = snapshot.data?.docs ?? [];
+              if (docs.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.mark_email_read_rounded, color: Colors.white38, size: 38),
+                      SizedBox(height: 12),
+                      Text(
+                        "No announcements yet",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "You're all caught up with live classes and notices.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 380),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 16),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>? ?? {};
+                    final title = data['title']?.toString() ?? 'Announcement';
+                    final body = data['body']?.toString() ?? '';
+                    final type = data['type']?.toString() ?? 'broadcast';
+                    final videoId = data['youtubeVideoId']?.toString();
+                    final isLive = type.toLowerCase().contains('live');
+
+                    String timeStr = "Recent";
+                    final timestamp = data['timestamp'];
+                    if (timestamp is Timestamp) {
+                      final dt = timestamp.toDate();
+                      final diff = DateTime.now().difference(dt);
+                      if (diff.inMinutes < 1) {
+                        timeStr = "Just now";
+                      } else if (diff.inHours < 1) {
+                        timeStr = "${diff.inMinutes}m ago";
+                      } else if (diff.inDays < 1) {
+                        timeStr = "${diff.inHours}h ago";
+                      } else {
+                        timeStr = "${diff.inDays}d ago";
+                      }
+                    }
+
+                    return _buildNotificationItem(
+                      title: title,
+                      body: body,
+                      time: timeStr,
+                      icon: isLive ? Icons.sensors_rounded : Icons.campaign_rounded,
+                      isLive: isLive,
+                      onTap: (videoId != null && videoId.isNotEmpty)
+                          ? () {
+                              Navigator.pop(ctx);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => LiveClassRoom(
+                                    userName: widget.studentName,
+                                    videoId: videoId,
+                                    title: title,
+                                    isAdmin: false,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Got it", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+            child: const Text("Close", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -188,32 +271,75 @@ class _MainDashboardState extends State<MainDashboard> {
     required String body,
     required String time,
     required IconData icon,
+    bool isLive = false,
+    VoidCallback? onTap,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.accent, size: 18),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isLive ? AppColors.liveRed : AppColors.primary.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                        ),
+                      ),
+                      if (isLive)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.liveRed,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            "LIVE",
+                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (body.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                      if (onTap != null)
+                        const Text(
+                          "Tap to join →",
+                          style: TextStyle(color: AppColors.accent, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5)),
-              const SizedBox(height: 3),
-              Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
