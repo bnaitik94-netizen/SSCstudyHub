@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/prewarm_service.dart';
+import '../services/notification_service.dart';
 import 'name_input_screen.dart';
 import 'main_dashboard.dart';
 import 'live_class_room.dart';
@@ -58,6 +59,9 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     _startIntelligentPrewarm();
+    if (!kIsWeb) {
+      NotificationService().syncTokenAndTopics();
+    }
   }
 
   Future<void> _startIntelligentPrewarm() async {

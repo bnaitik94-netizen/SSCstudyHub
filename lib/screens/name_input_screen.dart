@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_colors.dart';
+import '../services/notification_service.dart';
 import 'main_dashboard.dart';
 
 class NameInputScreen extends StatefulWidget {
@@ -14,6 +16,14 @@ class _NameInputScreenState extends State<NameInputScreen> {
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      NotificationService().syncTokenAndTopics();
+    }
+  }
 
   Future<void> _saveName() async {
     if (_isLoading) return;

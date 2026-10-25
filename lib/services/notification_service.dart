@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,23 +83,37 @@ class NotificationService {
         debugPrint("Native channel listener warning: $e");
       }
 
-      // 1. 🔔 REQUEST PERMISSION (Mobile Android / iOS)
-      try {
-        final NotificationSettings settings = await _fcm.requestPermission(
-          alert: true,
-          announcement: false,
-          badge: true,
-          carPlay: false,
-          criticalAlert: false,
-          provisional: false,
-          sound: true,
-        );
-        debugPrint("Notification authorization status: ${settings.authorizationStatus}");
-      } catch (e) {
-        debugPrint("FCM requestPermission note: $e");
-      }
+      // 1. 🔑 FETCH & SYNC FCM TOKEN IMMEDIATELY (Zero blocking!)
+      unawaited(_fetchAndSyncTokenWithRetry());
 
-      // 2. 📱 FOREGROUND PRESENTATION (Mobile only)
+      // 2. 🎯 TOPIC SUBSCRIPTIONS IMMEDIATELY (Zero blocking!)
+      unawaited(_subscribeToTopicsWithRetry());
+
+      // 3. 🔄 LISTEN FOR FCM TOKEN REFRESH
+      _fcm.onTokenRefresh.listen((newToken) {
+        debugPrint("🔄 FCM Device Token refreshed: $newToken");
+        _syncTokenToFirestore(newToken);
+      });
+
+      // 4. 🔔 REQUEST PERMISSION ASYNCHRONOUSLY (Non-blocking!)
+      unawaited(() async {
+        try {
+          final NotificationSettings settings = await _fcm.requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          );
+          debugPrint("Notification authorization status: ${settings.authorizationStatus}");
+        } catch (e) {
+          debugPrint("FCM requestPermission note: $e");
+        }
+      }());
+
+      // 5. 📱 FOREGROUND PRESENTATION (Mobile only)
       try {
         await _fcm.setForegroundNotificationPresentationOptions(
           alert: true,
@@ -106,32 +122,6 @@ class NotificationService {
         );
       } catch (e) {
         debugPrint("Foreground presentation warning: $e");
-      }
-
-      // 3. 🎯 TOPIC SUBSCRIPTIONS (Mobile only)
-      try {
-        await _fcm.subscribeToTopic('all_students');
-        await _fcm.subscribeToTopic('live_classes');
-        await _fcm.subscribeToTopic('study_updates');
-        debugPrint("✅ Subscribed to all student topics successfully.");
-      } catch (e) {
-        debugPrint("Topic subscription warning: $e");
-      }
-
-      // 4. 🔑 FETCH & SYNC FCM TOKEN
-      try {
-        final String? token = await _fcm.getToken();
-        if (token != null && token.isNotEmpty) {
-          debugPrint("✅ FCM Device Token: $token");
-          unawaited(_syncTokenToFirestore(token));
-        }
-
-        _fcm.onTokenRefresh.listen((newToken) {
-          debugPrint("🔄 FCM Device Token refreshed: $newToken");
-          _syncTokenToFirestore(newToken);
-        });
-      } catch (e) {
-        debugPrint("FCM Token fetch warning: $e");
       }
 
       // 5. 📨 LISTEN FOR FCM FOREGROUND NOTIFICATIONS
@@ -603,7 +593,39 @@ class NotificationService {
     }
   }
 
+  Future<void> _fetchAndSyncTokenWithRetry({int maxRetries = 5}) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final String? token = await _fcm.getToken();
+        if (token != null && token.isNotEmpty) {
+          debugPrint("✅ FCM Device Token obtained: $token");
+          await _syncTokenToFirestore(token);
+          return;
+        }
+      } catch (e) {
+        debugPrint("FCM Token fetch attempt $attempt warning: $e");
+      }
+      if (attempt < maxRetries) await Future.delayed(Duration(seconds: attempt * 2));
+    }
+  }
+
+  Future<void> _subscribeToTopicsWithRetry({int maxRetries = 5}) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await _fcm.subscribeToTopic('all_students');
+        await _fcm.subscribeToTopic('live_classes');
+        await _fcm.subscribeToTopic('study_updates');
+        debugPrint("✅ Subscribed to student topics successfully.");
+        return;
+      } catch (e) {
+        debugPrint("Topic subscription attempt $attempt warning: $e");
+      }
+      if (attempt < maxRetries) await Future.delayed(Duration(seconds: attempt * 2));
+    }
+  }
+
   Future<void> _syncTokenToFirestore(String token) async {
+    // 1. Direct write via Firestore SDK
     try {
       await FirebaseFirestore.instance
           .collection('student_device_tokens')
@@ -615,9 +637,30 @@ class NotificationService {
         'updated_at': FieldValue.serverTimestamp(),
         'last_seen': DateTime.now().toIso8601String(),
       }, SetOptions(merge: true));
-      debugPrint("🚀 Successfully registered student device token in Firestore!");
+      debugPrint("🚀 Successfully registered student device token in Firestore SDK!");
     } catch (e) {
-      debugPrint("Token sync warning: $e");
+      debugPrint("Firestore SDK token write warning: $e");
+    }
+
+    // 2. Guaranteed instant HTTP REST fallback (bypasses any SDK queue or delays)
+    try {
+      final url = Uri.parse(
+          'https://firestore.googleapis.com/v1/projects/naitik-live-class/databases/(default)/documents/student_device_tokens?documentId=$token');
+      await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'fields': {
+            'token': {'stringValue': token},
+            'platform': {'stringValue': defaultTargetPlatform.name},
+            'app_version': {'stringValue': '4.0.0'},
+            'last_seen': {'stringValue': DateTime.now().toIso8601String()},
+          }
+        }),
+      );
+      debugPrint("🚀 Successfully registered student device token via HTTP REST fallback!");
+    } catch (restErr) {
+      debugPrint("REST fallback token sync warning: $restErr");
     }
   }
 }
