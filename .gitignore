@@ -70,3 +70,16 @@ ui-debug.log*
 y/
 yes/
 debug_info/
+
+# Environment & Secret files (NEVER commit to GitHub)
+.env
+.env.*
+!.env.example
+*.env
+service-account*.json
+*service_account*.json
+credentials.json
+*.key
+*.pem
+private_key*
+

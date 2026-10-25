@@ -1696,12 +1696,21 @@
         // ==========================================
         // 2. REALTIME BROADCAST & NOTIFICATION ENGINE
         // ==========================================
-        const serviceAccountKey = {
-            "client_email": "firebase-adminsdk-fbsvc@naitik-live-class.iam.gserviceaccount.com",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQD0AOugmFOy+E8o\nm8SMn9gyhKaTHCwMx6LDzhemDOFyI0alWN4o7/CgHaq0WfX8fcjBCCLwltecIK3c\nULMAVvKlaXVJCeRmL3H0SyM/Y83Hzd4tbRVoT7fdfOL1qKu2qjkqxvZ27UQA8V1E\nuZGmWnZ4d40eOLJaqCqGYjFHqOiDpVS1IdJVSVhnVLtmnaKsitC+Pb6s8+TyUH0F\nQ8b1kRkEBXhF2R0wwdykaNB6po01x5jsvgMXgUw+oIJ+6kp7L/4Ux/y+BYs04I9/\n1KuGgSOF+IvkKBtpgL8ENYovyt9606rQdVb9k7dzZjPmwhf881XCR8ij2pz2BdDx\ndvbQ9UcnAgMBAAECggEAFcTrQMW2WfZLYa0cCQvNxxwMnH1b9Lvu6pc9huQJTRyW\nlfPqxi46Ap8C9to71w4F1ir6qwpaLCTCPjC496PKPDW/cAfA59j9yrTVbTdjSZs1\nYkokKc1K8yjMOuyUfVSMiyN7I7shYRAnqRUBSJ0ziqXn4jVevDXarWifSuxn6i6u\nWg8YZaRzmd9XSdH1CfTm3rxywhAysSpm+RBwlSNIuMrK92Xqp/rLUaYDmWIaPRr6\n4LQ9aGTb+g/DOxYAk+Grv0VnMWws4ErMSDlcPYhys3c7PSfhBJsL6UKjtgqF2mBV\nrGLhLEwA8RsXgJhSzwSkwSz8rAzxkY7qxDqctG+MSQKBgQD7l1J54PzID4pB3mwS\n3ZPMX/KGBiN4auKP1nDvQmg3T0tf4PSbLJDG791n770OAykbxPKqYvomaPHDPzav\nYCcFTwt683PqSOfJvbBAlqCGxS+izMGSWikyWbznPkvfhLt2tpr54per9MW+1ieT\nF5FgXTUxzvP84tA8wwWkk+egnQKBgQD4R486H8KuGe2JuYbFGKeO6f3sI9xX+pMu\nDJEu7zE04/189KNExK+8f+cUVIvnsvAZ9OnFWODMpuPMpzHY7rczfPZS/qeYO3PS\nXfA1OEO6IqSgkdAh+SQgHTPl8g4WeGKLjFJZSd5Zd7Uj3GDAYeHQtmOjcIXhmK7M\n1JVFJS4xkwKBgDSwazBlIutO/dhvmViWGObbTTIuRO1qDQqskTg6QxMaQyHQPcnl\nmmhfQZILzh8KIGjVZTCzy8mRftgx++TckS92b2QPaj4tiIVieW/9W5792s0QbpWU\n1j3aN0qCbGdiJ9Rjx67/el4jw+oEdYNDk0mIG6TTv5s9cPjYquzdoMutAoGAM6mI\nRxr2wo2InQDq5zZTH2zXNnzby77LQ2jACRkijxPl2kt5ccTPoJSou9U/622TgoMw\n5ayx0kPj4ODlgXNi0abuBqUQsJ+mYR7E7f4QMbolsXfF7FvQRZJuCyoL/mb8cnc3\nZ3b0en9rRNQFmeKEP47EOu0eHqxLqzmM+f9bllsCgYAkCjd8ihNz+4tlP4iXllAy\nI5Wl5BDaHW1Xr14NpnrZc3CcnbS+g/dMppRRyf+wgT9Zr+n2yzEUDUZ6HelyAgNr\nwq7xPTKwI9jcgjMM5mWkAcRgx9kOBXOt/0K2taCwZMBIadcDqid9PIsCxdnJDIWe\nOPRPTSrcirg2oBora0fDEg==\n-----END PRIVATE KEY-----\n"
-        };
+        // Optional FCM v1 service account configuration (stored securely in browser localStorage, never committed to git)
+        let serviceAccountKey = null;
+        try {
+            const storedKey = localStorage.getItem("ssc_fcm_service_account");
+            if (storedKey) {
+                serviceAccountKey = JSON.parse(storedKey);
+            }
+        } catch (e) {
+            console.warn("FCM Service account parser note:", e);
+        }
 
         async function getAccessToken() {
+            if (!serviceAccountKey || !serviceAccountKey.client_email || !serviceAccountKey.private_key) {
+                return null;
+            }
             try {
                 const header = { alg: "RS256", typ: "JWT" };
                 const now = Math.floor(Date.now() / 1000);

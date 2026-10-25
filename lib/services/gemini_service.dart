@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/chat_models.dart';
+import '../utils/app_env.dart';
 
 /// 🧠 HIGH-PERFORMANCE GEMINI AI SERVICE
 /// Features:
@@ -11,7 +12,7 @@ import '../models/chat_models.dart';
 /// - Local in-memory caching for instant 0ms study guide retrieval
 /// - Clean educational output formatting
 class GeminiAiService {
-  static const String _userApiKey = "AIzaSyDvJF-19NLwk5rvVRTl8jE0zxa3sCSwrIY";
+  static const String _userApiKey = AppEnv.geminiApiKey;
 
   // 🚀 ACTIVE & VALID GEMINI ENDPOINTS
   static const String _primaryUrl =

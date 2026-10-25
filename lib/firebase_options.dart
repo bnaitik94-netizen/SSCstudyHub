@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'utils/app_env.dart';
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
@@ -10,13 +11,13 @@ class DefaultFirebaseOptions {
     return web; 
   }
 
-  // Your exact credentials extracted from index.html
+  // Credentials configured from AppEnv (.env or production fallback)
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDvJF-19NLwk5rvVRTl8jE0zxa3sCSwrIY',
-    appId: '1:40811673099:web:f9a0405369e52c891bb90e',
-    messagingSenderId: '40811673099',
-    projectId: 'naitik-live-class',
-    authDomain: 'naitik-live-class.firebaseapp.com',
-    storageBucket: 'naitik-live-class.appspot.com',
+    apiKey: AppEnv.firebaseApiKey,
+    appId: AppEnv.firebaseAppIdWeb,
+    messagingSenderId: AppEnv.firebaseMessagingSenderId,
+    projectId: AppEnv.firebaseProjectId,
+    authDomain: AppEnv.firebaseAuthDomain,
+    storageBucket: AppEnv.firebaseStorageBucket,
   );
 }
