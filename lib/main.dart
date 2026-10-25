@@ -13,6 +13,7 @@ import 'services/notification_service.dart';
 import 'utils/url_strategy_helper.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -37,6 +38,7 @@ void main() async {
     
     // Background & foreground messaging initialization
     NotificationService.navigatorKey = appNavigatorKey;
+    NotificationService.scaffoldMessengerKey = appScaffoldMessengerKey;
     if (!kIsWeb) {
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     }
@@ -106,6 +108,7 @@ class SSCStudyHubApp extends StatelessWidget {
     return MaterialApp(
       title: 'SSC Study Hub Pro',
       navigatorKey: appNavigatorKey,
+      scaffoldMessengerKey: appScaffoldMessengerKey,
       themeMode: ThemeMode.dark,
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);

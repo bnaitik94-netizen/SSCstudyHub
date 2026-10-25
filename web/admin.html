@@ -1981,6 +1981,7 @@
         async function broadcastNotification(title, body, type = "broadcast", videoId = "") {
             if (!title || !body) return false;
 
+            let firestoreSuccess = false;
             // 1. Instantly write to Firestore `broadcast_notifications` collection
             // Triggers real-time listener on all online student Android devices and Web browsers in sub-80ms
             try {
@@ -1993,6 +1994,7 @@
                     created_at: Date.now()
                 });
                 console.log("✅ Firestore broadcast notification dispatched successfully.");
+                firestoreSuccess = true;
             } catch (err) {
                 console.error("Firestore broadcast error:", err);
             }
@@ -2033,7 +2035,7 @@
                 console.warn("FCM push note:", e.message || e);
             }
 
-            return true;
+            return firestoreSuccess;
         }
 
         function applyNotifPreset(title, body) {
@@ -2405,13 +2407,13 @@
             if (!videoId) { alert("Please provide a valid YouTube Live URL or 11-char Video ID!"); return; }
 
             try {
-                await db.collection("live_session").doc("current").update({
+                await db.collection("live_session").doc("current").set({
                     title: title,
                     youtubeVideoId: videoId,
                     isLive: true,
                     chatMode: "public",
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                }, { merge: true });
 
                 await broadcastNotification("🔴 Live Class Started!", `Teacher has started: ${title}. Join immediately!`, "live", videoId);
                 alert("🟢 Stream is now LIVE! Notification broadcast sent to all student devices.");
@@ -2488,13 +2490,13 @@
                 const videoId = upData.youtubeVideoId || parseYouTubeVideoId(upData.youtubeUrl);
                 if (!videoId) { alert("Please provide a valid YouTube URL in upcoming class first!"); return; }
 
-                await db.collection("live_session").doc("current").update({
+                await db.collection("live_session").doc("current").set({
                     title: upData.title,
                     youtubeVideoId: videoId,
                     isLive: true,
                     chatMode: "public",
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                }, { merge: true });
 
                 await broadcastNotification("🔴 Live Class Starting Now!", `Teacher has started: ${upData.title}. Join immediately!`, "live", videoId);
                 alert("🚀 Upcoming class promoted to LIVE successfully!");

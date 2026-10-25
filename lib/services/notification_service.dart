@@ -16,9 +16,21 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   bool _initialized = false;
   final Set<String> _processedNotificationIds = {};
+  final Set<String> _recentAlertKeys = {};
 
-  /// Global key to access current context for foreground banners & modal dialogs
+  /// Global key to access root navigator
   static GlobalKey<NavigatorState>? navigatorKey;
+
+  /// Global key to display ScaffoldMessenger alerts from anywhere reliably
+  static GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
+
+  /// Stream of active broadcast announcements from Firestore
+  static Stream<QuerySnapshot> get broadcastNotificationsStream =>
+      FirebaseFirestore.instance
+          .collection('broadcast_notifications')
+          .orderBy('timestamp', descending: true)
+          .limit(20)
+          .snapshots();
 
   /// Initialize all push notification channels, permissions, and topic subscriptions
   Future<void> initialize() async {
@@ -27,7 +39,7 @@ class NotificationService {
 
     try {
       if (!kIsWeb) {
-        // 1. 🔔 REQUEST PERMISSION (Mobile only)
+        // 1. 🔔 REQUEST PERMISSION (Mobile Android / iOS)
         final NotificationSettings settings = await _fcm.requestPermission(
           alert: true,
           announcement: false,
@@ -48,21 +60,29 @@ class NotificationService {
         );
 
         // 3. 🎯 TOPIC SUBSCRIPTIONS (Mobile only)
-        await _fcm.subscribeToTopic('all_students');
-        await _fcm.subscribeToTopic('live_classes');
-        await _fcm.subscribeToTopic('study_updates');
-        debugPrint("Subscribed to student topics successfully.");
-
-        // 4. 🔑 FETCH & SYNC FCM TOKEN
-        final String? token = await _fcm.getToken();
-        if (token != null) {
-          debugPrint("FCM Device Token: $token");
-          _syncTokenToFirestore(token);
+        try {
+          await _fcm.subscribeToTopic('all_students');
+          await _fcm.subscribeToTopic('live_classes');
+          await _fcm.subscribeToTopic('study_updates');
+          debugPrint("Subscribed to student topics successfully.");
+        } catch (e) {
+          debugPrint("Topic subscription warning: $e");
         }
 
-        _fcm.onTokenRefresh.listen((newToken) {
-          _syncTokenToFirestore(newToken);
-        });
+        // 4. 🔑 FETCH & SYNC FCM TOKEN
+        try {
+          final String? token = await _fcm.getToken();
+          if (token != null) {
+            debugPrint("FCM Device Token: $token");
+            _syncTokenToFirestore(token);
+          }
+
+          _fcm.onTokenRefresh.listen((newToken) {
+            _syncTokenToFirestore(newToken);
+          });
+        } catch (e) {
+          debugPrint("FCM Token fetch warning: $e");
+        }
 
         // 5. 📨 LISTEN FOR FCM FOREGROUND NOTIFICATIONS
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -70,26 +90,26 @@ class NotificationService {
           _showInAppAlert(
             title: message.notification?.title ?? "New Announcement",
             body: message.notification?.body ?? "Tap to view update.",
-            type: message.data['type'] ?? 'fcm',
-            youtubeVideoId: message.data['youtubeVideoId'],
+            type: message.data['type']?.toString() ?? 'fcm',
+            youtubeVideoId: message.data['youtubeVideoId']?.toString(),
           );
         });
 
         // 6. 🚀 HANDLE NOTIFICATION CLICK
         FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
           debugPrint("Notification tapped: ${message.data}");
-          _handleNotificationTap(message.data['youtubeVideoId']);
+          _handleNotificationTap(message.data['youtubeVideoId']?.toString());
         });
 
         final RemoteMessage? initialMessage = await _fcm.getInitialMessage();
         if (initialMessage != null) {
           debugPrint("Terminated launch from notification: ${initialMessage.data}");
-          _handleNotificationTap(initialMessage.data['youtubeVideoId']);
+          _handleNotificationTap(initialMessage.data['youtubeVideoId']?.toString());
         }
       }
 
       // 7. 🔥 REAL-TIME FIRESTORE BROADCAST LISTENER
-      // Guaranteed 100% instant notification delivery on BOTH Mobile & Web
+      // Guaranteed instant notification delivery on BOTH Mobile & Web
       _listenToFirestoreBroadcasts();
 
     } catch (e) {
@@ -100,6 +120,7 @@ class NotificationService {
   /// Explicit UI-attached permission check and prompt (Guarantees user is asked)
   Future<void> checkAndPromptPermission(BuildContext context) async {
     try {
+      if (kIsWeb) return;
       final NotificationSettings settings = await _fcm.getNotificationSettings();
 
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
@@ -263,7 +284,7 @@ class NotificationService {
     FirebaseFirestore.instance
         .collection('broadcast_notifications')
         .orderBy('timestamp', descending: true)
-        .limit(10)
+        .limit(15)
         .snapshots()
         .listen((snapshot) {
       if (isInitialSnapshot) {
@@ -276,14 +297,15 @@ class NotificationService {
       }
 
       for (var change in snapshot.docChanges) {
-        if (change.type == DocumentChangeType.added) {
+        if (change.type == DocumentChangeType.added ||
+            change.type == DocumentChangeType.modified) {
           final doc = change.doc;
           final docId = doc.id;
           final data = doc.data();
 
           if (data == null) continue;
 
-          // Deduplicate
+          // Deduplicate across initial session
           if (_processedNotificationIds.contains(docId)) continue;
           _processedNotificationIds.add(docId);
 
@@ -316,110 +338,128 @@ class NotificationService {
     required String type,
     String? youtubeVideoId,
   }) {
-    final navContext = navigatorKey?.currentContext;
-    if (navContext != null && navContext.mounted) {
-      final isLive = type.toLowerCase().contains('live');
+    // 1. Deduplicate by title+body within recent 10 seconds to prevent double notification if both FCM & Firestore fire
+    final notifKey = "${title}_$body";
+    if (_recentAlertKeys.contains(notifKey)) return;
+    _recentAlertKeys.add(notifKey);
+    Future.delayed(const Duration(seconds: 10), () => _recentAlertKeys.remove(notifKey));
 
-      ScaffoldMessenger.of(navContext).clearSnackBars();
-      ScaffoldMessenger.of(navContext).showSnackBar(
-        SnackBar(
-          content: InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(navContext).hideCurrentSnackBar();
-              _handleNotificationTap(youtubeVideoId);
-            },
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isLive ? AppColors.liveRed : AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isLive ? AppColors.liveRed : AppColors.primary)
-                            .withValues(alpha: 0.4),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    isLive ? Icons.sensors_rounded : Icons.notifications_active_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        body,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white70,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                if (isLive) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.liveRed,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      "JOIN",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+    final isLive = type.toLowerCase().contains('live');
+
+    final snackBar = SnackBar(
+      content: InkWell(
+        onTap: () {
+          scaffoldMessengerKey?.currentState?.hideCurrentSnackBar();
+          _handleNotificationTap(youtubeVideoId);
+        },
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isLive ? AppColors.liveRed : AppColors.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isLive ? AppColors.liveRed : AppColors.primary)
+                        .withValues(alpha: 0.4),
+                    blurRadius: 8,
                   ),
                 ],
-              ],
+              ),
+              child: Icon(
+                isLive ? Icons.sensors_rounded : Icons.notifications_active_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
             ),
-          ),
-          backgroundColor: const Color(0xFF0F1E38),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(
-              color: isLive
-                  ? AppColors.liveRed.withValues(alpha: 0.6)
-                  : const Color(0x4038BDF8),
-              width: 1.2,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    body,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.white70,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          duration: const Duration(seconds: 6),
+            if (isLive) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.liveRed,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  "JOIN",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
-      );
+      ),
+      backgroundColor: const Color(0xFF0F1E38),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isLive
+              ? AppColors.liveRed.withValues(alpha: 0.6)
+              : const Color(0x4038BDF8),
+          width: 1.2,
+        ),
+      ),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      duration: const Duration(seconds: 7),
+    );
+
+    // Primary delivery via global ScaffoldMessengerState
+    final messenger = scaffoldMessengerKey?.currentState;
+    if (messenger != null) {
+      messenger.clearSnackBars();
+      messenger.showSnackBar(snackBar);
+    } else {
+      // Fallback via Navigator context
+      final navContext = navigatorKey?.currentContext;
+      if (navContext != null && navContext.mounted) {
+        try {
+          ScaffoldMessenger.of(navContext).clearSnackBars();
+          ScaffoldMessenger.of(navContext).showSnackBar(snackBar);
+        } catch (_) {}
+      }
     }
   }
 
   void _handleNotificationTap(String? videoId) async {
     final prefs = await SharedPreferences.getInstance();
-    final studentName = prefs.getString('studentName') ?? prefs.getString('student_name') ?? 'Student';
+    final studentName = prefs.getString('studentName') ??
+        prefs.getString('student_name') ??
+        'Student';
     final navContext = navigatorKey?.currentContext;
     if (navContext != null && navContext.mounted) {
       if (videoId != null && videoId.isNotEmpty) {

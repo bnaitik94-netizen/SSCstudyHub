@@ -139,81 +139,226 @@ class _MainDashboardState extends State<MainDashboard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF0F1E38),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Colors.white12),
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 1.2),
         ),
-        title: const Row(
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        title: Row(
           children: [
-            Icon(Icons.notifications_active_rounded, color: AppColors.accent, size: 22),
-            SizedBox(width: 10),
-            Text(
-              "Announcements",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_active_rounded, color: AppColors.accent, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                "Class Announcements",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17),
+              ),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildNotificationItem(
-              title: "Welcome to SSC Study Hub Pro",
-              body: "All syllabus PDFs, live lectures, and AI doubt clearing are active.",
-              time: "Just now",
-              icon: Icons.school_rounded,
+        content: SizedBox(
+          width: 460,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.65,
             ),
-            const Divider(color: Colors.white12, height: 20),
-            _buildNotificationItem(
-              title: "Exam Countdown Active",
-              body: "Check the Live Schedule tab for daily revision class timings.",
-              time: "Today",
-              icon: Icons.event_note_rounded,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: NotificationService.broadcastNotificationsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.accent, strokeWidth: 2),
+                    ),
+                  );
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+                if (docs.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.notifications_none_rounded, color: Colors.white.withValues(alpha: 0.3), size: 48),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "No Broadcasts Yet",
+                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "When your teacher goes live or posts an important study update, it will appear here.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white38, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => Divider(color: Colors.white.withValues(alpha: 0.08), height: 16),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>? ?? {};
+                    final title = data['title']?.toString() ?? "Announcement";
+                    final body = data['body']?.toString() ?? "";
+                    final type = data['type']?.toString().toLowerCase() ?? "broadcast";
+                    final videoId = data['youtubeVideoId']?.toString();
+                    final isLive = type.contains('live');
+
+                    String timeText = "Recent";
+                    if (data['timestamp'] is Timestamp) {
+                      final dt = (data['timestamp'] as Timestamp).toDate();
+                      final diff = DateTime.now().difference(dt);
+                      if (diff.inMinutes < 1) {
+                        timeText = "Just now";
+                      } else if (diff.inMinutes < 60) {
+                        timeText = "${diff.inMinutes}m ago";
+                      } else if (diff.inHours < 24) {
+                        timeText = "${diff.inHours}h ago";
+                      } else {
+                        timeText = "${dt.day}/${dt.month}";
+                      }
+                    }
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        if (videoId != null && videoId.isNotEmpty) {
+                          Navigator.pop(ctx);
+                          _openLiveClass(videoId, title);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: isLive
+                                    ? AppColors.liveRed.withValues(alpha: 0.2)
+                                    : AppColors.primary.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isLive ? AppColors.liveRed.withValues(alpha: 0.4) : Colors.white12,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                isLive ? Icons.sensors_rounded : Icons.notifications_active_rounded,
+                                color: isLive ? AppColors.liveRed : AppColors.accent,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 13.5,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        timeText,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.4),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    body,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.75),
+                                      fontSize: 12,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (videoId != null && videoId.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.liveRed,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.liveRed.withValues(alpha: 0.35),
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.play_arrow_rounded, color: Colors.white, size: 14),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            "ENTER CLASSROOM",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Got it", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+            child: const Text("Close", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildNotificationItem({
-    required String title,
-    required String body,
-    required String time,
-    required IconData icon,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.accent, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5)),
-              const SizedBox(height: 3),
-              Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -247,6 +392,7 @@ class _MainDashboardState extends State<MainDashboard> {
             HomeTab(
               studentName: _studentName,
               onNavigateTab: _onTabTapped,
+              onNotificationsTap: _showNotificationsDialog,
             ),
             const StudyMaterialTab(),
             const UpcomingClassesTab(),
