@@ -198,12 +198,19 @@
             animation: fadeIn 0.5s ease-out;
         }
 
+        /* --- CUSTOM SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
         /* --- EXECUTIVE CYBER HEADER --- */
         header {
             background: rgba(14, 21, 34, 0.95);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-dim);
-            padding: 14px 28px;
+            padding: 12px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -211,24 +218,26 @@
             top: 0;
             z-index: 1000;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+            gap: 14px;
         }
         .brand-zone {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+            flex-shrink: 0;
         }
         .brand-badge {
             background: linear-gradient(135deg, #00F2FE, #4FACFE);
             color: #080B11;
             font-weight: 900;
-            font-size: 12px;
+            font-size: 11px;
             padding: 4px 8px;
             border-radius: 6px;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
         .brand-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             letter-spacing: 1.5px;
             color: var(--accent-cyan);
@@ -243,25 +252,35 @@
         /* Navigation Tabs */
         .nav-tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             background: #080B11;
             padding: 4px;
             border-radius: 12px;
             border: 1px solid var(--border-dim);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+        }
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
         .tab-btn {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 8px 16px;
+            padding: 8px 15px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.25s ease;
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
         .tab-btn:hover {
             color: white;
@@ -277,7 +296,8 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-shrink: 0;
         }
         .connection-pill {
             display: flex;
@@ -285,7 +305,7 @@
             gap: 8px;
             background: #080B11;
             border: 1px solid var(--border-dim);
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
@@ -318,11 +338,40 @@
             color: white;
         }
 
+        @media (max-width: 1080px) {
+            header {
+                flex-wrap: wrap;
+                padding: 12px 16px;
+            }
+            .nav-tabs {
+                order: 3;
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+        @media (max-width: 600px) {
+            .brand-title {
+                font-size: 15px !important;
+            }
+            .brand-sub {
+                display: none;
+            }
+            .connection-pill span {
+                display: none;
+            }
+        }
+
         /* --- DASHBOARD CONTAINER --- */
         .dashboard-body {
-            max-width: 1500px;
+            max-width: 1540px;
             margin: 0 auto;
             padding: 24px;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .dashboard-body {
+                padding: 16px 12px;
+            }
         }
 
         .tab-content {
@@ -336,12 +385,97 @@
         /* --- STUDIO GRID (LIVE BROACAST & CHAT) --- */
         .live-studio-grid {
             display: grid;
-            grid-template-columns: 460px 1fr;
+            grid-template-columns: minmax(360px, 440px) 1fr;
             gap: 24px;
             align-items: start;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1080px) {
             .live-studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .broadcast-btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        @media (max-width: 520px) {
+            .broadcast-btn-row {
+                flex-direction: column;
+            }
+        }
+
+        /* --- UPCOMING SCHEDULER GRID --- */
+        .upcoming-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 960px) {
+            .upcoming-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .datetime-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        @media (max-width: 540px) {
+            .datetime-inputs {
+                flex-direction: column;
+            }
+        }
+        .upcoming-btn-row {
+            display: flex;
+            gap: 12px;
+        }
+        @media (max-width: 540px) {
+            .upcoming-btn-row {
+                flex-direction: column;
+            }
+        }
+
+        /* --- NOTIFICATION CONTAINER --- */
+        .notify-container {
+            max-width: 840px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* --- SYLLABUS & QUIZ CONTROLS --- */
+        .github-input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 480px;
+        }
+        .github-input-group input {
+            flex: 1;
+            min-width: 200px;
+        }
+        .category-select-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .syllabus-btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .quiz-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 520px) {
+            .quiz-options-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -573,19 +707,26 @@
             border-radius: 16px;
             border: 1px solid var(--border-dim);
             box-shadow: var(--glow-card);
-            height: 720px;
+            height: clamp(560px, calc(100vh - 130px), 800px);
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
         }
+        @media (max-width: 768px) {
+            .chat-studio {
+                height: 580px;
+            }
+        }
         .chat-header {
-            padding: 16px 20px;
+            padding: 14px 18px;
             border-bottom: 1px solid var(--border-dim);
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--bg-panel);
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .chat-header-title {
             font-size: 16px;
@@ -748,12 +889,21 @@
             padding: 10px 16px;
             background: #080B11;
             border-top: 1px solid var(--border-dim);
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .reaction-strip::-webkit-scrollbar {
+            display: none;
         }
         .reaction-strip span {
             font-size: 11px;
             font-weight: 800;
             color: var(--text-muted);
             text-transform: uppercase;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
         .emoji-btn {
             background: #121824;
@@ -763,6 +913,7 @@
             font-size: 16px;
             cursor: pointer;
             transition: 0.15s;
+            flex-shrink: 0;
         }
         .emoji-btn:hover {
             transform: scale(1.25);
@@ -777,10 +928,13 @@
             border-top: 1px solid var(--border-dim);
             display: flex;
             gap: 12px;
+            align-items: center;
         }
         .chat-composer input {
             border-radius: 24px;
             padding: 12px 18px;
+            flex: 1;
+            min-width: 0;
         }
         .btn-send {
             width: 44px;
@@ -910,12 +1064,15 @@
         .table-wrap {
             max-height: 400px;
             overflow-y: auto;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             border-radius: 12px;
             border: 1px solid var(--border-dim);
             background: #080B11;
         }
         table {
             width: 100%;
+            min-width: 620px;
             border-collapse: collapse;
             text-align: left;
         }
@@ -951,14 +1108,19 @@
             height: 100%;
             background-color: rgba(0,0,0,0.75);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow-y: auto;
+            padding: 20px 12px;
         }
         .modal-content {
             background-color: var(--bg-card);
-            margin: 6% auto;
-            padding: 32px;
+            margin: 4vh auto;
+            padding: 30px 24px;
             border: 1px solid var(--border-cyan);
-            width: 480px;
-            max-width: 90vw;
+            width: 500px;
+            max-width: 94vw;
+            max-height: 88vh;
+            overflow-y: auto;
             border-radius: 18px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 242, 254, 0.15);
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1073,7 +1235,7 @@
                                 <input type="text" id="streamUrl" placeholder="https://youtube.com/live/... or 11-char ID">
                             </div>
 
-                            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <div class="broadcast-btn-row">
                                 <button class="btn-cyan" style="flex: 1;" onclick="startBroadcast()">
                                     🚀 GO LIVE & NOTIFY
                                 </button>
@@ -1150,7 +1312,7 @@
 
             <!-- ================= TAB 2: 📅 UPCOMING LECTURES SCHEDULER ================= -->
             <div id="tabUpcoming" class="tab-content">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <div class="upcoming-grid">
                     
                     <div class="card">
                         <div class="card-header">
@@ -1177,7 +1339,7 @@
 
                         <div class="form-group">
                             <label>Scheduled Date & Time</label>
-                            <div style="display: flex; gap: 10px;">
+                            <div class="datetime-inputs">
                                 <input type="datetime-local" id="upScheduledDateTime" style="flex: 1;" onchange="syncUpTimeText()">
                                 <input type="text" id="upTime" placeholder="e.g. Tomorrow at 10:00 AM" style="flex: 1;">
                             </div>
@@ -1190,7 +1352,7 @@
                             </label>
                         </div>
 
-                        <div style="display: flex; gap: 12px;">
+                        <div class="upcoming-btn-row">
                             <button class="btn-cyan" style="flex: 1;" onclick="saveUpcomingSchedule()">
                                 💾 SAVE UPCOMING & NOTIFY
                             </button>
@@ -1230,7 +1392,7 @@
 
             <!-- ================= TAB 3: 🔔 PUSH NOTIFICATION SENDER ================= -->
             <div id="tabNotify" class="tab-content">
-                <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+                <div class="notify-container">
                     <div class="card" style="border-color: var(--accent-cyan);">
                         <div class="card-header">
                             <div class="card-title">
@@ -1336,17 +1498,17 @@
                         <h3 style="margin: 0 0 4px 0; color: var(--accent-cyan);">🚀 GitHub App Syllabus Sync</h3>
                         <span style="font-size: 13px; color: var(--text-muted);">Saves your Personal Access Token locally so you never have to re-enter it.</span>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 320px;">
+                    <div class="github-input-group">
+                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
                         <button class="btn-cyan" onclick="publishToGitHub()">🚀 Publish to App</button>
                     </div>
                 </div>
 
                 <!-- CONTROLS & CATEGORY SELECTOR -->
                 <div class="syllabus-controls">
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="category-select-wrap">
                         <label style="color: var(--text-muted); font-size: 13px; font-weight: 700; text-transform: uppercase;">Category:</label>
-                        <select id="categorySelect" onchange="handleCategoryChange()" style="width: 250px;">
+                        <select id="categorySelect" onchange="handleCategoryChange()" style="min-width: 200px; max-width: 100%; flex: 1;">
                             <option value="semi_10">Semi-English 10th</option>
                             <option value="semi_9">Semi-English 9th</option>
                             <option value="semi_8">Semi-English 8th</option>
@@ -1359,15 +1521,15 @@
                         </select>
                     </div>
 
-                    <div style="display: flex; gap: 10px;">
+                    <div class="syllabus-btn-group">
                         <!-- Syllabus Buttons -->
-                        <span id="syllabusBtns" style="display: flex; gap: 10px;">
+                        <span id="syllabusBtns" style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn-cyan" onclick="openSubjectModal()">+ Add Subject</button>
                             <button class="btn-cyan" onclick="openGlobalChapterModal()">+ Add Chapter</button>
                         </span>
                         
                         <!-- Quiz Buttons -->
-                        <span id="quizBtns" style="display: none; gap: 10px;">
+                        <span id="quizBtns" style="display: none; gap: 10px; flex-wrap: wrap;">
                             <button class="btn-cyan" onclick="openQuizSubjectModal()">+ Add Quiz Category</button>
                             <button class="btn-green" onclick="openGlobalQuestionModal()">+ Add Question</button>
                         </span>
@@ -1473,7 +1635,7 @@
 
     <!-- Add Quiz Question Modal -->
     <div id="quizQuestionModal" class="modal">
-        <div class="modal-content" style="width: 540px;">
+        <div class="modal-content" style="max-width: 540px; width: 100%;">
             <span class="modal-close" onclick="closeModal('quizQuestionModal')">&times;</span>
             <h2>Add Quiz Question</h2>
             <div class="form-group">
@@ -1484,7 +1646,7 @@
                 <label>Question Text</label>
                 <input type="text" id="qText" placeholder="e.g. What is the value of g on Earth?">
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="quiz-options-grid">
                 <div class="form-group">
                     <label>Option A</label>
                     <input type="text" id="qOptA" placeholder="Option A">
