@@ -70,6 +70,7 @@ class _MainDashboardState extends State<MainDashboard> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService().checkAndPromptPermission(context);
+      NotificationService().syncTokenAndTopics();
     });
   }
 
@@ -257,9 +258,27 @@ class _MainDashboardState extends State<MainDashboard> {
           ),
         ),
         actions: [
+          if (!kIsWeb)
+            TextButton.icon(
+              icon: const Icon(Icons.notifications_active, size: 15, color: AppColors.accent),
+              label: const Text("Test System Alert", style: TextStyle(color: AppColors.accent, fontSize: 12)),
+              onPressed: () {
+                NotificationService().showNativeNotificationFromDart(
+                  title: "🔔 SSC Study Hub Alert",
+                  body: "Phone notification bar is active & working properly!",
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Test notification sent to phone status bar! Check top drawer."),
+                    duration: Duration(seconds: 3),
+                    backgroundColor: Color(0xFF0F172A),
+                  ),
+                );
+              },
+            ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Close", style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+            child: const Text("Close", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

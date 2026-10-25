@@ -24,6 +24,8 @@ const String _kPlayerCss = '''
         box-sizing: border-box;
         user-select: none;
         -webkit-user-select: none;
+        container-type: inline-size;
+        container-name: player;
     }
 
     .youtube-iframe { 
@@ -168,17 +170,25 @@ const String _kPlayerCss = '''
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
-        gap: 10px;
+        gap: 8px;
         width: 100%;
         box-sizing: border-box;
-        flex-wrap: nowrap !important;
+        overflow: visible;
+        flex-wrap: nowrap;
     }
 
-    .overlay-bottom-left, .overlay-bottom-right {
+    .overlay-bottom-left {
         display: flex;
         align-items: center;
-        gap: 8px;
-        flex-shrink: 0 !important;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .overlay-bottom-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
     }
 
     .btn-fullscreen-toggle {
@@ -198,6 +208,8 @@ const String _kPlayerCss = '''
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.18);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        flex-shrink: 1;
+        overflow: hidden;
     }
 
     .quick-emoji-btn {
@@ -245,6 +257,7 @@ const String _kPlayerCss = '''
         outline: none;
         user-select: none;
         white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .overlay-btn:hover { 
@@ -268,13 +281,15 @@ const String _kPlayerCss = '''
         box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
     }
 
-    @media (max-width: 680px) {
+    /* Container Queries for responsive player resizing (e.g. when side panel opens) */
+    @container player (max-width: 860px) {
         .overlay-btn {
-            padding: 8px 12px;
+            padding: 8px 10px;
             font-size: 12px;
+            gap: 4px;
         }
         .overlay-btn .btn-label {
-            display: none;
+            display: none !important;
         }
         .quick-reaction-bar {
             padding: 4px 8px;
@@ -282,11 +297,42 @@ const String _kPlayerCss = '''
         }
         .quick-emoji-btn {
             font-size: 17px;
-            padding: 2px 4px;
+            padding: 2px 3px;
+        }
+    }
+
+    @container player (max-width: 580px) {
+        .video-controls-overlay {
+            padding: 12px 14px;
+        }
+        .quick-reaction-bar {
+            display: none !important;
+        }
+        .overlay-btn {
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+        .overlay-top-left {
+            max-width: 60%;
+        }
+    }
+
+    @media (max-width: 860px) {
+        .overlay-btn .btn-label {
+            display: none !important;
+        }
+        .overlay-btn {
+            padding: 8px 10px;
+        }
+    }
+
+    @media (max-width: 580px) {
+        .quick-reaction-bar {
+            display: none !important;
         }
         .overlay-title {
-            max-width: 140px;
-            font-size: 13px;
+            max-width: 130px;
+            font-size: 12px;
         }
     }
 ''';
@@ -416,9 +462,11 @@ Widget buildWebYouTubePlayer({
       final bottomLeft = html.DivElement()..className = 'overlay-bottom-left';
       final btnPlayPause = html.ButtonElement()
         ..className = 'overlay-btn btn-play-pause'
+        ..title = 'Play / Pause'
         ..setInnerHtml('<span>⏸</span> <span class="btn-label">Pause</span>');
       final btnMute = html.ButtonElement()
         ..className = 'overlay-btn btn-mute'
+        ..title = 'Mute / Unmute'
         ..setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span>');
       bottomLeft.append(btnPlayPause);
       bottomLeft.append(btnMute);
@@ -431,12 +479,15 @@ Widget buildWebYouTubePlayer({
       final bottomRight = html.DivElement()..className = 'overlay-bottom-right';
       final btnFS = html.ButtonElement()
         ..className = 'overlay-btn btn-fullscreen-toggle'
+        ..title = 'Toggle Fullscreen'
         ..setInnerHtml('<span>⛶</span> <span class="btn-label">Fullscreen</span>');
       final btnChat = html.ButtonElement()
         ..className = 'overlay-btn btn-chat'
+        ..title = 'Live Class Chat'
         ..setInnerHtml('<span>💬</span> <span class="btn-label">Live Chat</span>');
       final btnDoubts = html.ButtonElement()
         ..className = 'overlay-btn btn-doubts'
+        ..title = 'AI Doubts Solver'
         ..setInnerHtml('<span>✨</span> <span class="btn-label">Doubts</span>');
 
       bottomRight.append(btnFS);

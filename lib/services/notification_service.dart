@@ -53,14 +53,23 @@ class NotificationService {
     }
   }
 
+  /// Public test helper for UI to trigger a native system notification test
+  Future<void> showNativeNotificationFromDart({
+    required String title,
+    required String body,
+    String? videoId,
+  }) async {
+    await _showNativeNotification(title: title, body: body, videoId: videoId);
+  }
+
   /// Initialize all push notification channels, permissions, and topic subscriptions
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
 
-    try {
-      if (!kIsWeb) {
-        // Register listener for native app opened intent
+    if (!kIsWeb) {
+      // 0. Setup Native Channel Listener for opened intent
+      try {
         _nativeChannel.setMethodCallHandler((call) async {
           if (call.method == 'onNotificationOpened') {
             final videoId = call.arguments?['videoId']?.toString();
@@ -68,20 +77,12 @@ class NotificationService {
             _handleNotificationTap(videoId);
           }
         });
+      } catch (e) {
+        debugPrint("Native channel listener warning: $e");
+      }
 
-        // Check if app was started cold from native notification intent
-        try {
-          final String? initialVideoId =
-              await _nativeChannel.invokeMethod('getInitialNotification');
-          if (initialVideoId != null && initialVideoId.isNotEmpty) {
-            debugPrint("Cold launch from native notification: $initialVideoId");
-            Future.delayed(const Duration(milliseconds: 600), () {
-              _handleNotificationTap(initialVideoId);
-            });
-          }
-        } catch (_) {}
-
-        // 1. 🔔 REQUEST PERMISSION (Mobile Android / iOS)
+      // 1. 🔔 REQUEST PERMISSION (Mobile Android / iOS)
+      try {
         final NotificationSettings settings = await _fcm.requestPermission(
           alert: true,
           announcement: false,
@@ -91,42 +92,50 @@ class NotificationService {
           provisional: false,
           sound: true,
         );
-
         debugPrint("Notification authorization status: ${settings.authorizationStatus}");
+      } catch (e) {
+        debugPrint("FCM requestPermission note: $e");
+      }
 
-        // 2. 📱 FOREGROUND PRESENTATION (Mobile only)
+      // 2. 📱 FOREGROUND PRESENTATION (Mobile only)
+      try {
         await _fcm.setForegroundNotificationPresentationOptions(
           alert: true,
           badge: true,
           sound: true,
         );
+      } catch (e) {
+        debugPrint("Foreground presentation warning: $e");
+      }
 
-        // 3. 🎯 TOPIC SUBSCRIPTIONS (Mobile only)
-        try {
-          await _fcm.subscribeToTopic('all_students');
-          await _fcm.subscribeToTopic('live_classes');
-          await _fcm.subscribeToTopic('study_updates');
-          debugPrint("Subscribed to student topics successfully.");
-        } catch (e) {
-          debugPrint("Topic subscription warning: $e");
+      // 3. 🎯 TOPIC SUBSCRIPTIONS (Mobile only)
+      try {
+        await _fcm.subscribeToTopic('all_students');
+        await _fcm.subscribeToTopic('live_classes');
+        await _fcm.subscribeToTopic('study_updates');
+        debugPrint("✅ Subscribed to all student topics successfully.");
+      } catch (e) {
+        debugPrint("Topic subscription warning: $e");
+      }
+
+      // 4. 🔑 FETCH & SYNC FCM TOKEN
+      try {
+        final String? token = await _fcm.getToken();
+        if (token != null && token.isNotEmpty) {
+          debugPrint("✅ FCM Device Token: $token");
+          unawaited(_syncTokenToFirestore(token));
         }
 
-        // 4. 🔑 FETCH & SYNC FCM TOKEN
-        try {
-          final String? token = await _fcm.getToken();
-          if (token != null) {
-            debugPrint("FCM Device Token: $token");
-            _syncTokenToFirestore(token);
-          }
+        _fcm.onTokenRefresh.listen((newToken) {
+          debugPrint("🔄 FCM Device Token refreshed: $newToken");
+          _syncTokenToFirestore(newToken);
+        });
+      } catch (e) {
+        debugPrint("FCM Token fetch warning: $e");
+      }
 
-          _fcm.onTokenRefresh.listen((newToken) {
-            _syncTokenToFirestore(newToken);
-          });
-        } catch (e) {
-          debugPrint("FCM Token fetch warning: $e");
-        }
-
-        // 5. 📨 LISTEN FOR FCM FOREGROUND NOTIFICATIONS
+      // 5. 📨 LISTEN FOR FCM FOREGROUND NOTIFICATIONS
+      try {
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           debugPrint("FCM foreground received: ${message.notification?.title}");
           _showInAppAlert(
@@ -136,8 +145,12 @@ class NotificationService {
             youtubeVideoId: message.data['youtubeVideoId']?.toString(),
           );
         });
+      } catch (e) {
+        debugPrint("onMessage listen warning: $e");
+      }
 
-        // 6. 🚀 HANDLE NOTIFICATION CLICK
+      // 6. 🚀 HANDLE NOTIFICATION CLICK
+      try {
         FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
           debugPrint("Notification tapped: ${message.data}");
           _handleNotificationTap(message.data['youtubeVideoId']?.toString());
@@ -148,14 +161,50 @@ class NotificationService {
           debugPrint("Terminated launch from notification: ${initialMessage.data}");
           _handleNotificationTap(initialMessage.data['youtubeVideoId']?.toString());
         }
+      } catch (e) {
+        debugPrint("Notification tap handling warning: $e");
       }
+    }
 
-      // 7. 🔥 REAL-TIME FIRESTORE BROADCAST LISTENER
-      // Guaranteed instant notification delivery on BOTH Mobile & Web
+    // 7. 🔥 REAL-TIME FIRESTORE BROADCAST LISTENER
+    try {
       _listenToFirestoreBroadcasts();
-
     } catch (e) {
-      debugPrint("Notification service warning: $e");
+      debugPrint("Firestore broadcast listener warning: $e");
+    }
+  }
+
+  /// Explicitly syncs FCM token to Firestore and subscribes to all topics with retry
+  Future<void> syncTokenAndTopics({int maxRetries = 3}) async {
+    if (kIsWeb) return;
+    
+    // 1. Topic subscriptions with retry
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await _fcm.subscribeToTopic('all_students');
+        await _fcm.subscribeToTopic('live_classes');
+        await _fcm.subscribeToTopic('study_updates');
+        debugPrint("✅ Subscribed to student topics successfully (attempt $attempt).");
+        break;
+      } catch (e) {
+        debugPrint("Topic subscription attempt $attempt note: $e");
+        if (attempt < maxRetries) await Future.delayed(Duration(seconds: attempt * 2));
+      }
+    }
+
+    // 2. Fetch & sync device token with retry
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final String? token = await _fcm.getToken();
+        if (token != null && token.isNotEmpty) {
+          debugPrint("✅ FCM Device Token obtained: $token");
+          await _syncTokenToFirestore(token);
+          break;
+        }
+      } catch (e) {
+        debugPrint("Token sync attempt $attempt warning: $e");
+        if (attempt < maxRetries) await Future.delayed(Duration(seconds: attempt * 2));
+      }
     }
   }
 
@@ -562,8 +611,11 @@ class NotificationService {
           .set({
         'token': token,
         'platform': defaultTargetPlatform.name,
+        'app_version': '4.0.0',
         'updated_at': FieldValue.serverTimestamp(),
+        'last_seen': DateTime.now().toIso8601String(),
       }, SetOptions(merge: true));
+      debugPrint("🚀 Successfully registered student device token in Firestore!");
     } catch (e) {
       debugPrint("Token sync warning: $e");
     }

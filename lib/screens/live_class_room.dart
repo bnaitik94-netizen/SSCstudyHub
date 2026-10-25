@@ -168,16 +168,24 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       _playerChatSub = WebFullscreenHelper.listenPlayerChat(() {
         if (mounted) {
           setState(() {
-            _isSidePanelOpen = true;
-            _activeTab = 'chat';
+            if (_isSidePanelOpen && _activeTab == 'chat') {
+              _isSidePanelOpen = false;
+            } else {
+              _isSidePanelOpen = true;
+              _activeTab = 'chat';
+            }
           });
         }
       });
       _playerDoubtsSub = WebFullscreenHelper.listenPlayerDoubts(() {
         if (mounted) {
           setState(() {
-            _isSidePanelOpen = true;
-            _activeTab = 'doubts';
+            if (_isSidePanelOpen && _activeTab == 'doubts') {
+              _isSidePanelOpen = false;
+            } else {
+              _isSidePanelOpen = true;
+              _activeTab = 'doubts';
+            }
           });
         }
       });
@@ -987,9 +995,9 @@ class _LiveClassRoomState extends State<LiveClassRoom>
   );
 }
 
-  Widget _buildLandscapeSidePanel() {
+  Widget _buildLandscapeSidePanel({double width = 360}) {
     return Container(
-      width: 360,
+      width: width,
       decoration: const BoxDecoration(
         color: Color(0xFF162544),
         border: Border(
@@ -999,42 +1007,25 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.black26,
             child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      _activeTab == 'chat'
-                          ? Icons.chat_rounded
-                          : Icons.psychology_rounded,
-                      size: 16,
-                      color: AppColors.accent,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _activeTab == 'chat'
-                          ? "Live Class Chat"
-                          : "AI Doubts Solver",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      _buildSidePanelTab('chat', Icons.chat_rounded, "Live Chat"),
+                      const SizedBox(width: 6),
+                      _buildSidePanelTab('doubts', Icons.psychology_rounded, "AI Doubts"),
+                    ],
+                  ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded,
-                      size: 20, color: Colors.white70),
-                  onPressed: () => setState(
-                      () => _isSidePanelOpen = false),
+                  icon: const Icon(Icons.close_rounded, size: 20, color: Colors.white70),
+                  onPressed: () => setState(() => _isSidePanelOpen = false),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  tooltip: "Close Panel",
                 ),
               ],
             ),
@@ -1045,6 +1036,48 @@ class _LiveClassRoomState extends State<LiveClassRoom>
               color: Colors.white10),
           Expanded(child: _buildPanelsContent()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSidePanelTab(String tab, IconData icon, String label) {
+    final bool isSelected = _activeTab == tab;
+    return InkWell(
+      onTap: () {
+        if (_activeTab != tab) {
+          setState(() => _activeTab = tab);
+        }
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accent.withValues(alpha: 0.18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.accent.withValues(alpha: 0.5) : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? AppColors.accent : Colors.white60,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.white70,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1120,13 +1153,18 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                   final totalHeight = constraints.maxHeight;
                   if (!_hasInitializedSidePanel) {
                     _hasInitializedSidePanel = true;
-                    if (totalWidth >= 850) {
+                    if (totalWidth >= 1050) {
                       _isSidePanelOpen = true;
                     }
                   }
+
+                  // Responsive side panel width
+                  final double sidePanelWidth = (totalWidth * 0.28).clamp(300.0, 380.0);
+                  final bool useSideBySide = isLandscape && totalWidth >= 900;
+
                   final double videoHeight = isLandscape ? totalHeight : (totalWidth * 9 / 16);
                   final double videoWidth = isLandscape
-                      ? (totalWidth - (_isSidePanelOpen ? 360 : 0))
+                      ? (useSideBySide && _isSidePanelOpen ? (totalWidth - sidePanelWidth) : totalWidth)
                       : totalWidth;
 
                   return Stack(
@@ -1150,18 +1188,43 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                           child: _buildPortraitInfoAndTabs(),
                         ),
 
-                      // 💻 LANDSCAPE SIDE PANEL
-                      if (isLandscape)
+                      // 💻 LANDSCAPE SIDE PANEL: Side-by-side on wide screens (>=900px)
+                      if (isLandscape && useSideBySide)
                         Positioned(
                           top: 0,
                           right: 0,
                           bottom: 0,
-                          width: 360,
+                          width: sidePanelWidth,
                           child: Offstage(
                             offstage: !_isSidePanelOpen,
-                            child: _buildLandscapeSidePanel(),
+                            child: _buildLandscapeSidePanel(width: sidePanelWidth),
                           ),
                         ),
+
+                      // 💻 LANDSCAPE FLOATING DRAWER PANEL: Overlay on compact screens (<900px) so video is NEVER crushed or cut!
+                      if (isLandscape && !useSideBySide && _isSidePanelOpen) ...[
+                        Positioned.fill(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _isSidePanelOpen = false),
+                            child: Container(
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          width: (totalWidth * 0.65).clamp(280.0, 360.0),
+                          child: Material(
+                            elevation: 16,
+                            color: Colors.transparent,
+                            child: _buildLandscapeSidePanel(
+                              width: (totalWidth * 0.65).clamp(280.0, 360.0),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },

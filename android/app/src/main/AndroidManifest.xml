@@ -7,7 +7,7 @@
     
     <application 
         android:label="SSC Study Hub" 
-        android:name="${applicationName}" 
+        android:name=".MainApplication" 
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
         

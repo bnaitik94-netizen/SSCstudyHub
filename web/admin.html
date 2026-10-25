@@ -1647,6 +1647,17 @@
                             Broadcast high-priority notifications instantly to all registered student Android devices and Web browsers with sound and direct classroom join links.
                         </p>
 
+                        <div style="display: flex; gap: 10px; margin-bottom: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span id="deviceCountBadge" style="font-size: 12px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700;">
+                                    📱 Registered Android Phones: <span id="activeDevicesNum">0</span>
+                                </span>
+                            </div>
+                            <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #A5B4FC; font-weight: 700; padding: 5px 12px; border-radius: 8px;">
+                                📦 Latest Build: SSC_Study_Hub_v4_Pro.apk
+                            </span>
+                        </div>
+
                         <!-- Quick Template Presets -->
                         <div style="margin-bottom: 18px;">
                             <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">
@@ -2057,21 +2068,23 @@
             try {
                 const token = await getAccessToken();
                 if (token) {
-                    const sendFcmMessage = async (topicName) => {
+                    const sendFcmMessage = async (target, isToken = false) => {
                         const payload = {
                             message: {
-                                topic: topicName,
+                                [isToken ? "token" : "topic"]: target,
                                 notification: {
                                     title: title,
                                     body: body
                                 },
                                 data: {
+                                    title: title,
+                                    body: body,
                                     type: type,
                                     youtubeVideoId: videoId || "",
                                     click_action: "FLUTTER_NOTIFICATION_CLICK"
                                 },
                                 android: {
-                                    priority: "high",
+                                    priority: "HIGH",
                                     notification: {
                                         icon: "ic_stat_notification",
                                         color: "#00F2FE",
@@ -2085,27 +2098,48 @@
                             }
                         };
 
-                        const res = await fetch("https://fcm.googleapis.com/v1/projects/naitik-live-class/messages:send", {
-                            method: "POST",
-                            headers: {
-                                "Authorization": `Bearer ${token}`,
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                        if (res.ok) {
-                            console.log(`✅ FCM push dispatched successfully to topic: ${topicName}`);
-                        } else {
-                            console.warn(`FCM send note (${topicName}):`, res.status);
+                        try {
+                            const res = await fetch("https://fcm.googleapis.com/v1/projects/naitik-live-class/messages:send", {
+                                method: "POST",
+                                headers: {
+                                    "Authorization": `Bearer ${token}`,
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                            if (res.ok) {
+                                console.log(`✅ FCM push dispatched successfully to ${isToken ? 'device token' : 'topic'}: ${target}`);
+                            } else {
+                                console.warn(`FCM send note (${target}):`, res.status);
+                            }
+                        } catch (sendErr) {
+                            console.warn("FCM fetch error:", sendErr);
                         }
                     };
 
-                    // Broadcast to all students topic
-                    await sendFcmMessage("all_students");
-
-                    // If live class alert, also dispatch to live_classes topic
+                    // Broadcast to student topics
+                    await sendFcmMessage("all_students", false);
                     if (type === "live") {
-                        await sendFcmMessage("live_classes");
+                        await sendFcmMessage("live_classes", false);
+                    }
+
+                    // Direct Push to all active registered student devices (Instant sub-second background delivery)
+                    try {
+                        const tokenSnap = await db.collection("student_device_tokens").limit(500).get();
+                        const tokenDispatches = [];
+                        tokenSnap.forEach(docSnap => {
+                            const tData = docSnap.data();
+                            const devToken = tData.token || docSnap.id;
+                            if (devToken && devToken.length > 20) {
+                                tokenDispatches.push(sendFcmMessage(devToken, true));
+                            }
+                        });
+                        if (tokenDispatches.length > 0) {
+                            await Promise.allSettled(tokenDispatches);
+                            console.log(`🚀 Dispatched direct FCM push to ${tokenDispatches.length} active student devices.`);
+                        }
+                    } catch (tErr) {
+                        console.warn("Direct device tokens dispatch note:", tErr.message || tErr);
                     }
                 }
             } catch (e) {
@@ -2138,7 +2172,8 @@
             const success = await broadcastNotification(title, body, "broadcast");
             
             if (success) {
-                alert("🚀 Notification Broadcast Sent Successfully to All Students!");
+                const count = document.getElementById("activeDevicesNum")?.textContent || "0";
+                alert(`🚀 Notification Broadcast Sent!\n\nDispatched to: ${count} registered mobile device(s) & topic 'all_students'.`);
                 titleInput.value = "";
                 bodyInput.value = "";
             } else {
@@ -2151,6 +2186,13 @@
 
         // Live Realtime listener for Broadcast History
         function initBroadcastHistory() {
+            // Realtime listener for active student phones count
+            db.collection("student_device_tokens").onSnapshot((snapshot) => {
+                const count = snapshot.docs.length;
+                const numSpan = document.getElementById("activeDevicesNum");
+                if (numSpan) numSpan.textContent = count;
+            });
+
             const container = document.getElementById("broadcastHistoryList");
             const badge = document.getElementById("broadcastCountBadge");
             if (!container) return;
