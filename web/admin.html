@@ -1648,9 +1648,15 @@
                         </p>
 
                         <div style="display: flex; gap: 10px; margin-bottom: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                            <div style="display: flex; gap: 8px; align-items: center;">
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                                 <span id="deviceCountBadge" style="font-size: 12px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700;">
-                                    📱 Registered Android Phones: <span id="activeDevicesNum">0</span>
+                                    📱 Android Phones: <span id="activeAndroidNum">0</span>
+                                </span>
+                                <span id="webCountBadge" style="font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700;">
+                                    💻 Web Students: <span id="activeWebNum">0</span>
+                                </span>
+                                <span id="totalCountBadge" style="font-size: 12px; background: rgba(139, 92, 246, 0.15); color: #C084FC; border: 1px solid rgba(139, 92, 246, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700;">
+                                    👥 Total Active: <span id="activeDevicesNum">0</span>
                                 </span>
                             </div>
                             <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #A5B4FC; font-weight: 700; padding: 5px 12px; border-radius: 8px;">
@@ -2172,8 +2178,10 @@
             const success = await broadcastNotification(title, body, "broadcast");
             
             if (success) {
-                const count = document.getElementById("activeDevicesNum")?.textContent || "0";
-                alert(`🚀 Notification Broadcast Sent!\n\nDispatched to: ${count} registered mobile device(s) & topic 'all_students'.`);
+                const total = document.getElementById("activeDevicesNum")?.textContent || "0";
+                const android = document.getElementById("activeAndroidNum")?.textContent || "0";
+                const web = document.getElementById("activeWebNum")?.textContent || "0";
+                alert(`🚀 Notification Broadcast Sent!\n\nDispatched to: ${total} active student(s) (${android} Android phones, ${web} Web browsers) & topic 'all_students'.`);
                 titleInput.value = "";
                 bodyInput.value = "";
             } else {
@@ -2186,11 +2194,26 @@
 
         // Live Realtime listener for Broadcast History
         function initBroadcastHistory() {
-            // Realtime listener for active student phones count
+            // Realtime listener for active student phones & web count
             db.collection("student_device_tokens").onSnapshot((snapshot) => {
-                const count = snapshot.docs.length;
+                let androidCount = 0;
+                let webCount = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const platform = (data.platform || '').toLowerCase();
+                    if (platform.includes('web')) {
+                        webCount++;
+                    } else {
+                        androidCount++;
+                    }
+                });
+                const total = snapshot.docs.length;
                 const numSpan = document.getElementById("activeDevicesNum");
-                if (numSpan) numSpan.textContent = count;
+                if (numSpan) numSpan.textContent = total;
+                const androidSpan = document.getElementById("activeAndroidNum");
+                if (androidSpan) androidSpan.textContent = androidCount;
+                const webSpan = document.getElementById("activeWebNum");
+                if (webSpan) webSpan.textContent = webCount;
             });
 
             const container = document.getElementById("broadcastHistoryList");

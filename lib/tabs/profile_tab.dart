@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/developer_info_screen.dart';
 import '../utils/app_colors.dart';
+import '../services/notification_service.dart';
 
 class ProfileTab extends StatefulWidget {
   final String studentName;
@@ -295,6 +296,169 @@ class _ProfileTabState extends State<ProfileTab> {
                 ],
               ),
             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.08),
+
+            const SizedBox(height: 20),
+
+            // 🔔 NOTIFICATION STATUS & DIAGNOSTICS CARD
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: AppColors.liquidGlassCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.notifications_active_rounded,
+                              size: 18, color: AppColors.accent),
+                          SizedBox(width: 8),
+                          Text(
+                            'Live Class Alerts',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: NotificationService.isRegisteredNotifier,
+                        builder: (context, isRegistered, _) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isRegistered
+                                  ? const Color(0x2610B981)
+                                  : const Color(0x266366F1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isRegistered
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF6366F1),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isRegistered
+                                      ? Icons.check_circle_rounded
+                                      : Icons.sync_rounded,
+                                  size: 13,
+                                  color: isRegistered
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFA5B4FC),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isRegistered ? "Connected" : "Syncing",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: isRegistered
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFA5B4FC),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Receive instant alerts when the teacher starts a live class or makes an important study announcement.",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            HapticFeedback.lightImpact();
+                            await NotificationService()
+                                .showNativeNotificationFromDart(
+                              title: "SSC Study Hub Pro 🔔",
+                              body:
+                                  "Device notification system is 100% active and connected!",
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Test notification sent! Check your notification bar."),
+                                  backgroundColor: AppColors.primary,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.send_rounded, size: 14),
+                          label: const Text(
+                            "Test Alert",
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white24),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            HapticFeedback.mediumImpact();
+                            await NotificationService()
+                                .syncTokenAndTopics(maxRetries: 5);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Device token successfully registered in cloud! 🚀"),
+                                  backgroundColor: Color(0xFF10B981),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.cloud_sync_rounded, size: 15),
+                          label: const Text(
+                            "Sync Token",
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w800),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: 280.ms).slideY(begin: 0.08),
 
             const SizedBox(height: 20),
 

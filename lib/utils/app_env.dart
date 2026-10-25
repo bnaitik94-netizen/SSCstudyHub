@@ -9,7 +9,7 @@ class AppEnv {
 
   static const String firebaseApiKey = String.fromEnvironment(
     'FIREBASE_API_KEY',
-    defaultValue: 'AIzaSyDvJF-19NLwk5rvVRTl8jE0zxa3sCSwrIY',
+    defaultValue: 'AIzaSyBWXYcw45pHiwA4xH6lE-F5onmOjFy6GKY',
   );
 
   static const String firebaseProjectId = String.fromEnvironment(

@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_colors.dart';
 import '../screens/live_class_room.dart';
+import '../utils/web_notification_helper.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -37,13 +38,26 @@ class NotificationService {
           .limit(20)
           .snapshots();
 
-  /// Invokes native Android NotificationManager to display heads-up system tray notification
+  static String? activeToken;
+  static ValueNotifier<bool> isRegisteredNotifier = ValueNotifier<bool>(false);
+
+  /// Invokes native Android NotificationManager or Web Notifications to display heads-up system tray notification
   static Future<void> _showNativeNotification({
     required String title,
     required String body,
     String? videoId,
   }) async {
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      WebNotificationHelper.showNotification(
+        title,
+        body,
+        videoId: videoId,
+        onClick: () {
+          NotificationService()._handleNotificationTap(videoId);
+        },
+      );
+      return;
+    }
     try {
       await _nativeChannel.invokeMethod('showSystemNotification', {
         'title': title,
@@ -69,14 +83,21 @@ class NotificationService {
     if (_initialized) return;
     _initialized = true;
 
-    if (!kIsWeb) {
-      // 0. Setup Native Channel Listener for opened intent
+    if (kIsWeb) {
+      // 🌐 WEB PUSH & NOTIFICATIONS INITIALIZATION
+      WebNotificationHelper.requestPermission();
+      unawaited(syncTokenAndTopics());
+    } else {
+      // 0. Setup Native Channel Listener for opened intent and runtime permission callbacks
       try {
         _nativeChannel.setMethodCallHandler((call) async {
           if (call.method == 'onNotificationOpened') {
             final videoId = call.arguments?['videoId']?.toString();
             debugPrint("Native notification opened with videoId: $videoId");
             _handleNotificationTap(videoId);
+          } else if (call.method == 'onPermissionGranted') {
+            debugPrint("Native notification permission granted! Triggering immediate token sync...");
+            unawaited(syncTokenAndTopics(maxRetries: 5));
           }
         });
       } catch (e) {
@@ -164,9 +185,15 @@ class NotificationService {
     }
   }
 
-  /// Explicitly syncs FCM token to Firestore and subscribes to all topics with retry
-  Future<void> syncTokenAndTopics({int maxRetries = 3}) async {
-    if (kIsWeb) return;
+  /// Explicitly syncs FCM token or Web client ID to Firestore and subscribes to all topics with retry
+  Future<void> syncTokenAndTopics({int maxRetries = 5}) async {
+    if (kIsWeb) {
+      final webId = WebNotificationHelper.getWebClientId();
+      if (webId.isNotEmpty) {
+        await _syncTokenToFirestore(webId, platform: 'web');
+      }
+      return;
+    }
     
     // 1. Topic subscriptions with retry
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -188,7 +215,7 @@ class NotificationService {
         final String? token = await _fcm.getToken();
         if (token != null && token.isNotEmpty) {
           debugPrint("✅ FCM Device Token obtained: $token");
-          await _syncTokenToFirestore(token);
+          await _syncTokenToFirestore(token, platform: 'android');
           break;
         }
       } catch (e) {
@@ -201,7 +228,11 @@ class NotificationService {
   /// Explicit UI-attached permission check and prompt (Guarantees user is asked)
   Future<void> checkAndPromptPermission(BuildContext context) async {
     try {
-      if (kIsWeb) return;
+      if (kIsWeb) {
+        WebNotificationHelper.requestPermission();
+        unawaited(syncTokenAndTopics());
+        return;
+      }
       final NotificationSettings settings = await _fcm.getNotificationSettings();
 
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
@@ -219,6 +250,7 @@ class NotificationService {
             sound: true,
           );
           if (requested.authorizationStatus == AuthorizationStatus.authorized) {
+            unawaited(syncTokenAndTopics(maxRetries: 5));
             return;
           }
         }
@@ -227,6 +259,9 @@ class NotificationService {
         if (context.mounted) {
           _showPermissionBottomSheet(context);
         }
+      } else {
+        // Already authorized - guarantee token sync
+        unawaited(syncTokenAndTopics(maxRetries: 3));
       }
     } catch (e) {
       debugPrint("Permission prompt check error: $e");
@@ -334,6 +369,7 @@ class NotificationService {
                         badge: true,
                         sound: true,
                       );
+                      unawaited(syncTokenAndTopics(maxRetries: 5));
                     },
                     icon: const Icon(Icons.check_circle_rounded, size: 18),
                     label: const Text(
@@ -624,15 +660,22 @@ class NotificationService {
     }
   }
 
-  Future<void> _syncTokenToFirestore(String token) async {
+  Future<void> _syncTokenToFirestore(String token, {String? platform}) async {
+    final effectivePlatform = platform ?? (kIsWeb ? 'web' : defaultTargetPlatform.name);
+    activeToken = token;
+    isRegisteredNotifier.value = true;
+
+    // Generate safe alphanumeric document ID for Firestore
+    final safeDocId = token.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+
     // 1. Direct write via Firestore SDK
     try {
       await FirebaseFirestore.instance
           .collection('student_device_tokens')
-          .doc(token)
+          .doc(safeDocId)
           .set({
         'token': token,
-        'platform': defaultTargetPlatform.name,
+        'platform': effectivePlatform,
         'app_version': '4.0.0',
         'updated_at': FieldValue.serverTimestamp(),
         'last_seen': DateTime.now().toIso8601String(),
@@ -642,17 +685,17 @@ class NotificationService {
       debugPrint("Firestore SDK token write warning: $e");
     }
 
-    // 2. Guaranteed instant HTTP REST fallback (bypasses any SDK queue or delays)
+    // 2. Guaranteed instant HTTP REST PATCH fallback (bypasses any SDK queue or delays)
     try {
       final url = Uri.parse(
-          'https://firestore.googleapis.com/v1/projects/naitik-live-class/databases/(default)/documents/student_device_tokens?documentId=$token');
-      await http.post(
+          'https://firestore.googleapis.com/v1/projects/naitik-live-class/databases/(default)/documents/student_device_tokens/${Uri.encodeComponent(safeDocId)}');
+      await http.patch(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'fields': {
             'token': {'stringValue': token},
-            'platform': {'stringValue': defaultTargetPlatform.name},
+            'platform': {'stringValue': effectivePlatform},
             'app_version': {'stringValue': '4.0.0'},
             'last_seen': {'stringValue': DateTime.now().toIso8601String()},
           }

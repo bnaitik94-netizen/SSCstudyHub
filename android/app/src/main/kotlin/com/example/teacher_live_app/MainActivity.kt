@@ -32,6 +32,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 101 && grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                MethodChannel(messenger, CHANNEL).invokeMethod("onPermissionGranted", null)
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
