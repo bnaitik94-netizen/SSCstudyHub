@@ -9,6 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/prewarm_service.dart';
 import '../utils/app_colors.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../widgets/web_player_loader.dart';
 import '../widgets/live_session_panel.dart';
 import '../widgets/doubts_panel.dart';
@@ -80,12 +81,17 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
   bool _computeIsLandscape(Orientation orientation) {
     if (kIsWeb) {
-      if (WebFullscreenHelper.isFullscreen()) return true;
       final media = MediaQuery.of(context);
-      // PC / Desktop / Laptop screens with landscape aspect or width >= 768 are ALWAYS landscape:
+      final bool isMobileScreen = media.size.width < 768;
+      // 📱 Mobile Web: strictly follow natural device orientation or physical landscape aspect
+      if (isMobileScreen) {
+        return orientation == Orientation.landscape || media.size.width > media.size.height;
+      }
+      // 💻 PC / Desktop / Laptop screens with landscape aspect or width >= 768 are ALWAYS landscape:
       if (media.size.width >= 768 && media.size.width > media.size.height) {
         return true;
       }
+      if (WebFullscreenHelper.isFullscreen()) return true;
       if (_webForceLandscape != null) {
         return _webForceLandscape!;
       }
@@ -815,13 +821,17 @@ class _LiveClassRoomState extends State<LiveClassRoom>
   }
 
   Widget _buildPortraitInfoAndTabs() {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bool isKeyboardOpen = bottomInset > 80;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Column(
         children: [
-        // Class Info Row
-        Container(
+        // Class Info Row (Auto-collapses when virtual keyboard is open to preserve chat space)
+        if (!isKeyboardOpen)
+          Container(
           padding: const EdgeInsets.symmetric(
               horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
@@ -906,7 +916,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                       setState(() => _activeTab = 'chat'),
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(vertical: 11),
+                        EdgeInsets.symmetric(vertical: isKeyboardOpen ? 7 : 11),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
@@ -951,7 +961,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                       setState(() => _activeTab = 'doubts'),
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(vertical: 11),
+                        EdgeInsets.symmetric(vertical: isKeyboardOpen ? 7 : 11),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
@@ -1178,6 +1188,17 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                 return KeyEventResult.ignored;
               }
               if (event is KeyDownEvent) {
+                if (kIsWeb) {
+                  // On Web, native HTML window onKeyDown handles K, M, Space, F, etc.
+                  // directly on the player with visual feedback and zero conflict.
+                  if (event.logicalKey == LogicalKeyboardKey.escape &&
+                      WebFullscreenHelper.isFullscreen()) {
+                    WebFullscreenHelper.exitFullscreen();
+                    setState(() => _webForceLandscape = null);
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                }
                 if (event.logicalKey == LogicalKeyboardKey.space ||
                     event.logicalKey == LogicalKeyboardKey.keyK) {
                   _toggleWebPlayPause();
@@ -1189,12 +1210,6 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                 }
                 if (event.logicalKey == LogicalKeyboardKey.keyM) {
                   _toggleWebMute();
-                  return KeyEventResult.handled;
-                }
-                if (event.logicalKey == LogicalKeyboardKey.escape &&
-                    kIsWeb && WebFullscreenHelper.isFullscreen()) {
-                  WebFullscreenHelper.exitFullscreen();
-                  setState(() => _webForceLandscape = null);
                   return KeyEventResult.handled;
                 }
               }
@@ -1325,10 +1340,12 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                       // 💻 LANDSCAPE FLOATING DRAWER PANEL: Overlay on compact screens (<900px) so video is NEVER crushed or cut!
                       if (isLandscape && !useSideBySide && _isSidePanelOpen) ...[
                         Positioned.fill(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _isSidePanelOpen = false),
-                            child: Container(
-                              color: Colors.black45,
+                          child: PointerInterceptor(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _isSidePanelOpen = false),
+                              child: Container(
+                                color: Colors.black45,
+                              ),
                             ),
                           ),
                         ),
@@ -1337,15 +1354,52 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                           right: 0,
                           bottom: 0,
                           width: (totalWidth * 0.65).clamp(280.0, 360.0),
-                          child: Material(
-                            elevation: 16,
-                            color: Colors.transparent,
-                            child: _buildLandscapeSidePanel(
-                              width: (totalWidth * 0.65).clamp(280.0, 360.0),
+                          child: PointerInterceptor(
+                            child: Material(
+                              elevation: 16,
+                              color: Colors.transparent,
+                              child: _buildLandscapeSidePanel(
+                                width: (totalWidth * 0.65).clamp(280.0, 360.0),
+                              ),
                             ),
                           ),
                         ),
                       ],
+
+                      // 📱 MOBILE WEB LANDSCAPE QUICK ACTION PILLS (Thumb reachable on right side)
+                      if (isLandscape && !useSideBySide && !_isSidePanelOpen)
+                        Positioned(
+                          bottom: 24,
+                          right: 16,
+                          child: PointerInterceptor(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildOverlayBtn(
+                                  Icons.chat_bubble_outline_rounded,
+                                  "Chat",
+                                  () {
+                                    setState(() {
+                                      _isSidePanelOpen = true;
+                                      _activeTab = 'chat';
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                _buildOverlayBtn(
+                                  Icons.psychology_alt_outlined,
+                                  "Doubts",
+                                  () {
+                                    setState(() {
+                                      _isSidePanelOpen = true;
+                                      _activeTab = 'doubts';
+                                    });
+                                  },
+                                ),
+                              ],
+                            ).animate().fadeIn(duration: 250.ms),
+                          ),
+                        ),
                     ],
                   );
                 },

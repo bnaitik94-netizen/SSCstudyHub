@@ -2,8 +2,6 @@
 import 'dart:ui_web' as ui_web;
 // ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
-// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
-import 'dart:js' as js;
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -222,13 +220,13 @@ const String _kPlayerCss = '''
         letter-spacing: 0.4px;
     }
 
-    /* 🚀 VOLUME MASTER 600% SUPER BOOSTER (PC/LAPTOP) */
-    .btn-volume-boost {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(239, 68, 68, 0.95)) !important;
-        border: 1px solid rgba(251, 191, 36, 0.6) !important;
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4) !important;
+    /* ⚡ INSTANT ZERO-PERMISSION MAX VOLUME BUTTON (PC & MOBILE) */
+    .btn-volume-max {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.95)) !important;
+        border: 1px solid rgba(52, 211, 153, 0.6) !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
         color: #FFFFFF !important;
-        padding: 7px 12px !important;
+        padding: 7px 11px !important;
         font-size: 12px !important;
         font-weight: 800 !important;
         letter-spacing: 0.3px !important;
@@ -244,222 +242,83 @@ const String _kPlayerCss = '''
         outline: none !important;
     }
 
-    .btn-volume-boost:hover {
+    .btn-volume-max:hover {
         transform: translateY(-2px) scale(1.04) !important;
-        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
+        border-color: #A7F3D0 !important;
+    }
+
+    .btn-volume-max:active {
+        transform: translateY(0) scale(0.98) !important;
+    }
+
+    /* 🚀 VOLUME MASTER 600% EXTENSION LINK (PC/LAPTOP) */
+    .btn-volume-ext {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.88), rgba(239, 68, 68, 0.92)) !important;
+        border: 1px solid rgba(251, 191, 36, 0.55) !important;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+        color: #FFFFFF !important;
+        padding: 7px 11px !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.3px !important;
+        border-radius: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        pointer-events: auto !important;
+        outline: none !important;
+    }
+
+    .btn-volume-ext:hover {
+        transform: translateY(-2px) scale(1.04) !important;
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55) !important;
         border-color: #FDE047 !important;
+        color: #FFFFFF !important;
     }
 
-    .btn-volume-boost.boost-active {
-        background: linear-gradient(135deg, #EF4444, #8B5CF6) !important;
-        border-color: #C084FC !important;
-        animation: boosterGlow 2s infinite ease-in-out !important;
-    }
-
-    @keyframes boosterGlow {
-        0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
-        50% { box-shadow: 0 0 22px rgba(139, 92, 246, 0.85); }
-    }
-
-    /* Floating Volume Master Control Dialog */
-    .volume-master-modal {
-        position: absolute;
-        bottom: 74px;
-        left: 20px;
-        z-index: 50;
-        background: rgba(15, 23, 42, 0.96);
-        border: 1.5px solid rgba(251, 191, 36, 0.45);
-        border-radius: 16px;
-        padding: 16px 18px;
-        width: 320px;
-        box-shadow: 0 14px 44px rgba(0, 0, 0, 0.85), 0 0 24px rgba(245, 158, 11, 0.25);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        color: #FFFFFF;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        display: none;
-        flex-direction: column;
-        gap: 12px;
-        user-select: none;
-        pointer-events: auto;
-    }
-
-    .volume-master-modal.show-modal {
-        display: flex;
-        animation: boostModalSlideIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    @keyframes boostModalSlideIn {
-        from { opacity: 0; transform: translateY(12px) scale(0.96); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .vm-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        padding-bottom: 8px;
-    }
-
-    .vm-title {
-        font-size: 13.5px;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: #FBBF24;
-        letter-spacing: 0.3px;
-    }
-
-    .vm-close-btn {
-        background: transparent;
-        border: none;
-        color: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        font-size: 16px;
-        padding: 2px 6px;
-        border-radius: 6px;
-    }
-
-    .vm-close-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
-        color: #FFFFFF;
-    }
-
-    .vm-current-level {
-        text-align: center;
-        font-size: 32px;
-        font-weight: 900;
-        color: #38BDF8;
-        font-variant-numeric: tabular-nums;
-        text-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-        margin: 2px 0;
-    }
-
-    .vm-current-level.is-boosted {
-        color: #F59E0B;
-        text-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
-    }
-
-    .vm-slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 8px;
-        border-radius: 6px;
-        background: linear-gradient(to right, #38BDF8 0%, #38BDF8 16.6%, #F59E0B 16.6%, #EF4444 66.6%, #8B5CF6 100%);
-        outline: none;
-        cursor: pointer;
-    }
-
-    .vm-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-        border: 2.5px solid #F59E0B;
-        cursor: pointer;
-        transition: transform 0.15s ease;
-    }
-
-    .vm-slider::-webkit-slider-thumb:hover {
-        transform: scale(1.25);
-    }
-
-    .vm-presets-row {
-        display: flex;
-        gap: 6px;
-        justify-content: space-between;
-    }
-
-    .vm-preset-chip {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 8px;
-        color: #FFFFFF;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 6px 8px;
-        cursor: pointer;
-        flex: 1;
-        text-align: center;
-        transition: all 0.15s ease;
-    }
-
-    .vm-preset-chip:hover {
-        background: rgba(245, 158, 11, 0.25);
-        border-color: #F59E0B;
-        transform: translateY(-1px);
-    }
-
-    .vm-preset-chip.active {
-        background: #F59E0B;
-        color: #000000;
-        border-color: #FBBF24;
-        font-weight: 800;
-    }
-
-    .vm-action-btn {
-        width: 100%;
-        padding: 9px 12px;
-        border-radius: 10px;
-        border: none;
-        font-size: 12.5px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
-
-    .vm-action-btn.btn-activate {
-        background: linear-gradient(135deg, #F59E0B, #EF4444);
-        color: #FFFFFF;
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
-    }
-
-    .vm-action-btn.btn-activate:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(245, 158, 11, 0.55);
-    }
-
-    .vm-action-btn.btn-deactivate {
-        background: rgba(239, 68, 68, 0.2);
-        color: #FCA5A5;
-        border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-
-    .vm-action-btn.btn-deactivate:hover {
-        background: rgba(239, 68, 68, 0.35);
-    }
-
-    .vm-extension-link {
-        font-size: 10.5px;
-        color: rgba(255, 255, 255, 0.65);
-        text-decoration: none;
-        text-align: center;
-        display: block;
-        transition: color 0.15s ease;
-        padding-top: 2px;
-    }
-
-    .vm-extension-link:hover {
-        color: #38BDF8;
-        text-decoration: underline;
+    .btn-volume-ext:active {
+        transform: translateY(0) scale(0.98) !important;
     }
 
     @container player (max-width: 768px) {
-        .btn-volume-boost {
+        .btn-volume-max {
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+            border-radius: 8px !important;
+        }
+        .btn-volume-max .vm-badge-text {
+            font-size: 10px !important;
+        }
+        .btn-volume-ext {
             display: none !important;
         }
-        .volume-master-modal {
+
+        /* Hide desktop physical shortcut badges on mobile */
+        .shortcut-badge {
             display: none !important;
+        }
+
+        /* In mobile portrait, Live Chat and Doubts are directly below video */
+        .overlay-bottom-right .btn-chat,
+        .overlay-bottom-right .btn-doubts {
+            display: none !important;
+        }
+
+        .quick-reaction-bar {
+            display: none !important;
+        }
+        .overlay-top-left {
+            max-width: 75% !important;
+        }
+        .overlay-btn {
+            padding: 6px 9px !important;
+            font-size: 11.5px !important;
         }
     }
 
@@ -837,66 +696,21 @@ Widget buildWebYouTubePlayer({
       bottomLeft.append(btnPlayPause);
       bottomLeft.append(volumeGroup);
 
-      // 🚀 Volume Master 600% Super Booster Button (PC/Laptop Exclusive)
-      final btnBooster = html.ButtonElement()
-        ..className = 'btn-volume-boost'
-        ..title = 'Volume Master: Amplify volume up to 600%'
-        ..setInnerHtml('<span>🚀</span> <span class="vm-badge-text">Boost 600%</span>');
-      bottomLeft.append(btnBooster);
+      // ⚡ Zero-Permission Instant Max Volume (100% Boost)
+      final btnMaxVolume = html.ButtonElement()
+        ..className = 'btn-volume-max'
+        ..title = 'Instant Max Volume (100%) - Zero Permission'
+        ..setInnerHtml('<span>⚡</span> <span class="vm-badge-text">Max 100%</span>');
+      bottomLeft.append(btnMaxVolume);
 
-      // 🎛️ Floating Volume Master Modal Dialog
-      final boosterModal = html.DivElement()..className = 'volume-master-modal';
-
-      final bmHeader = html.DivElement()..className = 'vm-header';
-      final bmTitle = html.DivElement()
-        ..className = 'vm-title'
-        ..setInnerHtml('<span>🚀</span> <span>Volume Master Booster</span>');
-      final bmClose = html.ButtonElement()
-        ..className = 'vm-close-btn'
-        ..text = '✕'
-        ..title = 'Close Dialog';
-      bmHeader.append(bmTitle);
-      bmHeader.append(bmClose);
-
-      final bmLevel = html.DivElement()
-        ..className = 'vm-current-level'
-        ..text = '100%';
-
-      final bmSlider = html.InputElement(type: 'range')
-        ..className = 'vm-slider'
-        ..min = '0'
-        ..max = '600'
-        ..value = '100';
-
-      final bmPresets = html.DivElement()..className = 'vm-presets-row';
-      const presets = [100, 200, 300, 400, 600];
-      final List<html.ButtonElement> presetChips = [];
-      for (final p in presets) {
-        final chip = html.ButtonElement()
-          ..className = 'vm-preset-chip${p == 100 ? " active" : ""}'
-          ..text = p == 600 ? '600% 🚀' : '$p%';
-        presetChips.add(chip);
-        bmPresets.append(chip);
-      }
-
-      final bmActionBtn = html.ButtonElement()
-        ..className = 'vm-action-btn btn-activate'
-        ..setInnerHtml('<span>⚡</span> <span>Enable 600% Booster</span>');
-
-      final bmExtLink = html.AnchorElement()
-        ..className = 'vm-extension-link'
+      // 🚀 Direct Volume Master Extension Link (Optional 600% System Boost for PC/Laptop)
+      final btnExtLink = html.AnchorElement()
+        ..className = 'btn-volume-ext'
         ..href = 'https://chromewebstore.google.com/detail/volume-master/jghehhnnjjbhicgahgahmmlbakkhjmhh'
         ..target = '_blank'
-        ..text = '🧩 Or Install Volume Master Chrome Extension ↗';
-
-      boosterModal.append(bmHeader);
-      boosterModal.append(bmLevel);
-      boosterModal.append(bmSlider);
-      boosterModal.append(bmPresets);
-      boosterModal.append(bmActionBtn);
-      boosterModal.append(bmExtLink);
-
-      overlay.append(boosterModal);
+        ..title = 'Install Volume Master Extension for 600% PC/Laptop Boost (Opens Chrome Store)'
+        ..setInnerHtml('<span>🚀</span> <span class="vm-badge-text">600% Ext ↗</span>');
+      bottomLeft.append(btnExtLink);
 
       // Bottom Center: Quick Emoji Reaction Bar (Visible directly on player!)
       final quickReactionBar = html.DivElement()..className = 'quick-reaction-bar';
@@ -1097,7 +911,12 @@ Widget buildWebYouTubePlayer({
         } catch (_) {}
       }
 
+      int lastTogglePlayTime = 0;
       void togglePlay() {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (now - lastTogglePlayTime < 180) return;
+        lastTogglePlayTime = now;
+
         isPlaying = !isPlaying;
         if (isPlaying) {
           sendVideoCommand('playVideo');
@@ -1110,7 +929,12 @@ Widget buildWebYouTubePlayer({
         }
       }
 
+      int lastToggleMuteTime = 0;
       void toggleMute() {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (now - lastToggleMuteTime < 180) return;
+        lastToggleMuteTime = now;
+
         isMuted = !isMuted;
         if (isMuted) {
           sendVideoCommand('mute');
@@ -1138,105 +962,12 @@ Widget buildWebYouTubePlayer({
         showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
       });
 
-      // 🚀 VOLUME MASTER 600% SUPER BOOSTER INTERACTION LOGIC
-      bool isBoosterActive = false;
-
-      void updateBoosterDisplay(bool active, int level) {
-        isBoosterActive = active;
-
-        bmSlider.value = level.toString();
-        bmLevel.text = '$level%';
-        if (level > 100) {
-          bmLevel.classes.add('is-boosted');
-        } else {
-          bmLevel.classes.remove('is-boosted');
-        }
-
-        for (int i = 0; i < presets.length; i++) {
-          if (presets[i] == level) {
-            presetChips[i].classes.add('active');
-          } else {
-            presetChips[i].classes.remove('active');
-          }
-        }
-
-        if (active) {
-          btnBooster.classes.add('boost-active');
-          btnBooster.setInnerHtml('<span>🚀</span> <span class="vm-badge-text">$level% Boost</span>');
-          bmActionBtn.className = 'vm-action-btn btn-deactivate';
-          bmActionBtn.setInnerHtml('<span>✕</span> <span>Turn OFF Booster</span>');
-        } else {
-          btnBooster.classes.remove('boost-active');
-          btnBooster.setInnerHtml('<span>🚀</span> <span class="vm-badge-text">Boost 600%</span>');
-          bmActionBtn.className = 'vm-action-btn btn-activate';
-          bmActionBtn.setInnerHtml('<span>⚡</span> <span>Enable 600% Booster</span>');
-        }
-      }
-
-      btnBooster.onClick.listen((e) {
+      // ⚡ Zero-Permission Instant Max Volume 100% Handler
+      btnMaxVolume.onClick.listen((e) {
         e.stopPropagation();
-        boosterModal.classes.toggle('show-modal');
-      });
-
-      bmClose.onClick.listen((e) {
-        e.stopPropagation();
-        boosterModal.classes.remove('show-modal');
-      });
-
-      bmActionBtn.onClick.listen((e) {
-        e.stopPropagation();
-        try {
-          final boosterObj = js.context['sscVolumeBooster'];
-          if (boosterObj != null) {
-            if (isBoosterActive) {
-              // ignore: avoid_dynamic_calls
-              boosterObj.callMethod('deactivate', []);
-            } else {
-              // ignore: avoid_dynamic_calls
-              boosterObj.callMethod('activate', []);
-            }
-          }
-        } catch (_) {}
-      });
-
-      void applyBoosterVolume(int val) {
-        try {
-          final boosterObj = js.context['sscVolumeBooster'];
-          if (boosterObj != null) {
-            // ignore: avoid_dynamic_calls
-            boosterObj.callMethod('setVolume', [val]);
-            if (val > 100 && !isBoosterActive) {
-              // ignore: avoid_dynamic_calls
-              boosterObj.callMethod('activate', []);
-            }
-          }
-        } catch (_) {}
-      }
-
-      bmSlider.onInput.listen((_) {
-        final val = int.tryParse(bmSlider.value ?? '100') ?? 100;
-        applyBoosterVolume(val);
-      });
-
-      for (int i = 0; i < presets.length; i++) {
-        final p = presets[i];
-        presetChips[i].onClick.listen((e) {
-          e.stopPropagation();
-          applyBoosterVolume(p);
-        });
-      }
-
-      html.window.on['ssc-volume-booster-changed'].listen((event) {
-        try {
-          if (event is html.CustomEvent && event.detail != null) {
-            final detail = event.detail;
-            // ignore: avoid_dynamic_calls
-            final active = detail['isActive'] == true;
-            // ignore: avoid_dynamic_calls
-            final vol = int.tryParse(detail['volume'].toString()) ?? 100;
-            updateBoosterDisplay(active, vol);
-          }
-        } catch (_) {}
+        if (isMuted) toggleMute();
+        setVolume(100);
+        showCenterFeedback('🔊 100%');
       });
 
       // --- SMOOTH AUTO-HIDE CONTROLS (WITHOUT BUGGY EDGE THRESHOLD) ---
@@ -1246,9 +977,11 @@ Widget buildWebYouTubePlayer({
         interceptor.style.cursor = 'none'; // Hides cursor in cinema/theater mode
       }
 
-      void showControls(html.Event e) {
+      int controlsShownAt = 0;
+      void showControls([html.Event? e]) {
         overlay.classes.add('show-controls');
         interceptor.style.cursor = 'default';
+        controlsShownAt = DateTime.now().millisecondsSinceEpoch;
 
         hideTimer?.cancel();
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
@@ -1276,15 +1009,6 @@ Widget buildWebYouTubePlayer({
         hideTimer?.cancel();
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
       });
-      boosterModal.onMouseEnter.listen((_) {
-        hideTimer?.cancel();
-        overlay.classes.add('show-controls');
-        interceptor.style.cursor = 'default';
-      });
-      boosterModal.onMouseLeave.listen((_) {
-        hideTimer?.cancel();
-        hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
-      });
 
       // 🖱️ SMART SINGLE & DOUBLE CLICK HANDLER
       int lastClickTime = 0;
@@ -1306,9 +1030,14 @@ Widget buildWebYouTubePlayer({
 
         singleClickTimer?.cancel();
         singleClickTimer = Timer(const Duration(milliseconds: 280), () {
+          final nowMs = DateTime.now().millisecondsSinceEpoch;
+          final elapsed = nowMs - controlsShownAt;
           if (overlay.classes.contains('show-controls')) {
-            hideControls();
-            hideTimer?.cancel();
+            // Only hide if controls were shown more than 350ms ago (prevents touchscreen instant dismissal)
+            if (elapsed > 350) {
+              hideControls();
+              hideTimer?.cancel();
+            }
           } else {
             showControls(e);
           }
@@ -1328,6 +1057,7 @@ Widget buildWebYouTubePlayer({
       btnMute.onClick.listen((e) {
         e.stopPropagation();
         toggleMute();
+        volumeGroup.classes.toggle('active');
       });
 
       // ⌨️ DIRECT PC/LAPTOP KEYBOARD SHORTCUTS
@@ -1338,7 +1068,10 @@ Widget buildWebYouTubePlayer({
         final active = html.document.activeElement;
         if (active != null) {
           final tag = active.tagName.toLowerCase();
-          if (tag == 'input' || tag == 'textarea' || active.isContentEditable == true) {
+          if (tag == 'input' ||
+              tag == 'textarea' ||
+              active.isContentEditable == true ||
+              active.classes.contains('flt-text-editing')) {
             return;
           }
         }
@@ -1346,26 +1079,26 @@ Widget buildWebYouTubePlayer({
         final key = e.key?.toLowerCase() ?? '';
         final code = e.code?.toLowerCase() ?? '';
 
-        if (code == 'space' || key == 'k') {
+        if (code == 'space' || key == ' ' || key == 'k' || code == 'keyk') {
           e.preventDefault();
           togglePlay();
-        } else if (key == 'f') {
+        } else if (key == 'f' || code == 'keyf') {
           e.preventDefault();
           btnFS.click();
-        } else if (key == 'm') {
+        } else if (key == 'm' || code == 'keym') {
           e.preventDefault();
           toggleMute();
-        } else if (key == 'c') {
+        } else if (key == 'c' || code == 'keyc') {
           e.preventDefault();
           btnChat.click();
-        } else if (key == 'd') {
+        } else if (key == 'd' || code == 'keyd') {
           e.preventDefault();
           btnDoubts.click();
-        } else if (code == 'arrowup') {
+        } else if (code == 'arrowup' || key == 'arrowup') {
           e.preventDefault();
           setVolume(currentVolume + 5);
           showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
-        } else if (code == 'arrowdown') {
+        } else if (code == 'arrowdown' || key == 'arrowdown') {
           e.preventDefault();
           setVolume(currentVolume - 5);
           showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
