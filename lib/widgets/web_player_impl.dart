@@ -91,29 +91,33 @@ const String _kPlayerCss = '''
         }
     }
 
-    /* Center Play/Pause Ripple Feedback */
+    /* Center Play/Pause & Volume Ripple Feedback */
     .center-feedback-icon {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.5);
-        width: 76px;
+        min-width: 76px;
         height: 76px;
-        background: rgba(15, 23, 42, 0.85);
-        border-radius: 50%;
+        padding: 0 18px;
+        box-sizing: border-box;
+        white-space: nowrap;
+        background: rgba(15, 23, 42, 0.88);
+        border-radius: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #FFFFFF;
-        font-size: 32px;
+        font-size: 26px;
+        font-weight: 800;
         pointer-events: none;
         z-index: 28;
         opacity: 0;
-        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1.5px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75);
     }
 
     .center-feedback-icon.show-feedback {
@@ -265,13 +269,40 @@ const String _kPlayerCss = '''
     }
 
     @container player (max-width: 768px) {
-        .btn-volume-max {
-            padding: 5px 8px !important;
-            font-size: 11px !important;
-            border-radius: 8px !important;
+        .video-controls-overlay {
+            padding: 12px 14px max(14px, env(safe-area-inset-bottom, 14px)) 14px !important;
         }
+
+        .touch-interceptor {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .overlay-btn {
+            min-height: 38px !important;
+            padding: 7px 11px !important;
+            font-size: 13px !important;
+            border-radius: 10px !important;
+            touch-action: manipulation !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        .overlay-btn .btn-label {
+            display: none !important;
+        }
+
+        .btn-volume-max {
+            min-height: 38px !important;
+            padding: 7px 11px !important;
+            font-size: 12px !important;
+            border-radius: 10px !important;
+            touch-action: manipulation !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
         .btn-volume-max .vm-badge-text {
-            font-size: 10px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
         }
 
         /* Hide desktop physical shortcut badges on mobile */
@@ -291,9 +322,21 @@ const String _kPlayerCss = '''
         .overlay-top-left {
             max-width: 75% !important;
         }
-        .overlay-btn {
-            padding: 6px 9px !important;
-            font-size: 11.5px !important;
+
+        /* Touch-friendly volume slider on mobile */
+        .volume-control-group.active .volume-slider-wrapper {
+            width: 95px !important;
+            padding: 0 8px 0 4px !important;
+        }
+        .volume-slider {
+            height: 7px !important;
+            border-radius: 6px !important;
+            touch-action: manipulation !important;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            width: 20px !important;
+            height: 20px !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7) !important;
         }
     }
 
@@ -315,6 +358,11 @@ const String _kPlayerCss = '''
     
     .video-controls-overlay.show-controls { 
         opacity: 1; 
+    }
+
+    /* Prevent accidental taps on hidden buttons when overlay is faded out on mobile */
+    .video-controls-overlay:not(.show-controls) * {
+        pointer-events: none !important;
     }
 
     .overlay-top-bar { 
@@ -479,17 +527,50 @@ const String _kPlayerCss = '''
 
     @container player (max-width: 580px) {
         .video-controls-overlay {
-            padding: 12px 14px;
+            padding: 10px 12px max(12px, env(safe-area-inset-bottom, 12px)) 12px !important;
         }
         .quick-reaction-bar {
             display: none !important;
         }
         .overlay-btn {
-            padding: 6px 8px;
-            font-size: 11px;
+            min-height: 36px !important;
+            padding: 6px 9px !important;
+            font-size: 12px !important;
+            gap: 4px !important;
+        }
+        .btn-volume-max {
+            min-height: 36px !important;
+            padding: 6px 9px !important;
+            font-size: 11.5px !important;
         }
         .overlay-top-left {
-            max-width: 60%;
+            max-width: 65% !important;
+        }
+    }
+
+    @container player (max-width: 440px) {
+        .video-controls-overlay {
+            padding: 8px 10px max(10px, env(safe-area-inset-bottom, 10px)) 10px !important;
+        }
+        .overlay-btn {
+            min-height: 35px !important;
+            padding: 5px 8px !important;
+            font-size: 11.5px !important;
+        }
+        .btn-volume-max {
+            min-height: 35px !important;
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+        }
+        .overlay-title {
+            max-width: 125px !important;
+            font-size: 11.5px !important;
+        }
+        .center-feedback-icon {
+            min-width: 64px !important;
+            height: 64px !important;
+            font-size: 20px !important;
+            padding: 0 12px !important;
         }
     }
 
@@ -499,6 +580,27 @@ const String _kPlayerCss = '''
         }
         .overlay-btn {
             padding: 8px 10px;
+        }
+    }
+
+    @media (max-height: 500px) and (orientation: landscape) {
+        .video-controls-overlay {
+            padding: 8px 16px max(10px, env(safe-area-inset-bottom, 10px)) 16px !important;
+        }
+        .overlay-btn {
+            min-height: 34px !important;
+            padding: 5px 10px !important;
+            font-size: 12px !important;
+        }
+        .btn-volume-max {
+            min-height: 34px !important;
+            padding: 5px 10px !important;
+            font-size: 11.5px !important;
+        }
+        .center-feedback-icon {
+            min-width: 60px !important;
+            height: 60px !important;
+            font-size: 20px !important;
         }
     }
 
@@ -950,7 +1052,7 @@ Widget buildWebYouTubePlayer({
         }
       });
 
-      // ⚡ In-House 200% Super Volume Booster Toggle
+      // ⚡ In-House 200% Super Volume Booster Toggle (Touch & Click)
       btnMaxVolume.onClick.listen((e) {
         e.stopPropagation();
         if (isMuted) toggleMute();
@@ -999,6 +1101,15 @@ Widget buildWebYouTubePlayer({
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
       });
       bottomBar.onMouseLeave.listen((_) {
+        hideTimer?.cancel();
+        hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
+      });
+
+      // 📱 Prevent controls auto-hide while interacting with volume slider on mobile touchscreens
+      volumeSlider.onTouchStart.listen((_) {
+        hideTimer?.cancel();
+      });
+      volumeSlider.onTouchEnd.listen((_) {
         hideTimer?.cancel();
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
       });

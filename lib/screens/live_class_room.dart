@@ -171,7 +171,12 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       _playerFSSub = WebFullscreenHelper.listenPlayerFullscreen(() {
         if (mounted) {
           setState(() {
-            _webForceLandscape = WebFullscreenHelper.isFullscreen() ? true : null;
+            final isFs = WebFullscreenHelper.isFullscreen();
+            if (isFs) {
+              _webForceLandscape = true;
+            } else {
+              _webForceLandscape = (_webForceLandscape == true) ? null : true;
+            }
           });
         }
       });
@@ -1128,7 +1133,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                 color: isSelected ? Colors.white : Colors.white70,
               ),
             ),
-            if (shortcut != null) ...[
+            if (shortcut != null && (!kIsWeb || MediaQuery.of(context).size.width >= 768)) ...[
               const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
@@ -1366,8 +1371,8 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                         ),
                       ],
 
-                      // 📱 MOBILE WEB LANDSCAPE QUICK ACTION PILLS (Thumb reachable on right side)
-                      if (isLandscape && !useSideBySide && !_isSidePanelOpen)
+                      // 📱 MOBILE NATIVE LANDSCAPE QUICK ACTION PILLS (Native APK only, preventing web player overlay collision)
+                      if (isLandscape && !useSideBySide && !_isSidePanelOpen && !kIsWeb)
                         Positioned(
                           bottom: 24,
                           right: 16,
