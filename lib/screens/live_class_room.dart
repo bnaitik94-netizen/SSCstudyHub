@@ -8,7 +8,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/prewarm_service.dart';
 import '../utils/app_colors.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../widgets/web_player_loader.dart';
 import '../widgets/live_session_panel.dart';
@@ -81,6 +81,14 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
   bool _computeIsLandscape(Orientation orientation) {
     if (kIsWeb) {
+      final bool isDesktopPlatform = defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.linux;
+      // 💻 PC / Laptop screens are ALWAYS landscape desktop players:
+      if (isDesktopPlatform) {
+        return true;
+      }
+
       // 1. Explicit user toggle (fullscreen button in player or app) takes highest priority
       if (_webForceLandscape != null) {
         return _webForceLandscape!;
@@ -96,8 +104,8 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       if (isMobileScreen) {
         return orientation == Orientation.landscape || media.size.width > media.size.height;
       }
-      // 💻 PC / Desktop / Laptop screens with landscape aspect or width >= 768 are ALWAYS landscape:
-      if (media.size.width >= 768 && media.size.width > media.size.height) {
+      // Screens with width >= 768 are landscape:
+      if (media.size.width >= 768) {
         return true;
       }
       return orientation == Orientation.landscape;
@@ -1237,16 +1245,20 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                 builder: (context, constraints) {
                   final totalWidth = constraints.maxWidth;
                   final totalHeight = constraints.maxHeight;
+                  final bool isDesktopDevice = defaultTargetPlatform == TargetPlatform.windows ||
+                      defaultTargetPlatform == TargetPlatform.macOS ||
+                      defaultTargetPlatform == TargetPlatform.linux;
                   if (!_hasInitializedSidePanel) {
                     _hasInitializedSidePanel = true;
-                    if (totalWidth >= 1050) {
+                    // On PC / Laptop, default open side panel:
+                    if (isDesktopDevice || totalWidth >= 850) {
                       _isSidePanelOpen = true;
                     }
                   }
 
                   // Responsive side panel width
-                  final double sidePanelWidth = (totalWidth * 0.28).clamp(300.0, 380.0);
-                  final bool useSideBySide = isLandscape && totalWidth >= 900;
+                  final double sidePanelWidth = (totalWidth * 0.28).clamp(280.0, 380.0);
+                  final bool useSideBySide = isLandscape && (totalWidth >= 750 || isDesktopDevice);
 
                   final double videoHeight = isLandscape ? totalHeight : (totalWidth * 9 / 16);
                   final double videoWidth = isLandscape
@@ -1274,8 +1286,8 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                           child: _buildPortraitInfoAndTabs(),
                         ),
 
-                      // 🔄 MOBILE WEB ROTATION HINT (When in fullscreen on portrait screen)
-                      if (kIsWeb && isLandscape && totalWidth < totalHeight)
+                      // 🔄 MOBILE WEB ROTATION HINT (When in fullscreen on portrait screen - NEVER on PC)
+                      if (kIsWeb && !isDesktopDevice && isLandscape && totalWidth < totalHeight)
                         Positioned(
                           top: 24,
                           left: 20,

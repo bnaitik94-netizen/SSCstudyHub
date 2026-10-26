@@ -79,12 +79,15 @@ class _NameInputScreenState extends State<NameInputScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -194,11 +197,13 @@ class _NameInputScreenState extends State<NameInputScreen> {
                     .animate()
                     .slideY(begin: 0.1, duration: 400.ms, delay: 500.ms)
                     .fadeIn(),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

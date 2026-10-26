@@ -574,7 +574,7 @@ const String _kPlayerCss = '''
         }
     }
 
-    @media (orientation: portrait) {
+    @media (max-width: 600px) and (orientation: portrait) {
         .btn-chat, .btn-doubts {
             display: none !important;
         }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../tabs/home_tab.dart';
 import '../tabs/study_material_tab.dart';
@@ -365,7 +365,11 @@ class _MainDashboardState extends State<MainDashboard> {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isDesktop = screenWidth >= 850;
+    final bool isDesktopPlatform = defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.linux;
+    // 💻 Always prioritize Desktop UI on PC/laptops, and on tablets/screens >= 768px:
+    final bool isDesktop = isDesktopPlatform || screenWidth >= 768;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
