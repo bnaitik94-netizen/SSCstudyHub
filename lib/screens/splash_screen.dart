@@ -152,11 +152,12 @@ class _SplashScreenState extends State<SplashScreen> {
         width: double.infinity,
         height: double.infinity,
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isShort = constraints.maxHeight < 560;
+              final isLandscape = constraints.maxWidth > constraints.maxHeight;
+
+              final children = <Widget>[
                 // ── 1. MINIMAL TOP BADGE ──────────────────────────────
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -360,8 +361,40 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ],
                 ).animate().fadeIn(duration: 350.ms, delay: 150.ms),
-              ],
-            ),
+              ];
+
+              final content = Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isLandscape ? 40.0 : 24.0,
+                  vertical: isShort ? 14.0 : 24.0,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: children,
+                ),
+              );
+
+              if (isShort) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isLandscape ? 40.0 : 24.0,
+                        vertical: 16.0,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: children,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return content;
+            },
           ),
         ),
       ),

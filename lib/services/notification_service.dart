@@ -665,6 +665,17 @@ class NotificationService {
     activeToken = token;
     isRegisteredNotifier.value = true;
 
+    // Retrieve saved student name from preferences
+    String studentName = 'Student';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      studentName = prefs.getString('studentName') ??
+          prefs.getString('student_name') ??
+          'Class 10 Student';
+    } catch (_) {}
+
+    const deviceType = kIsWeb ? 'Web Browser' : 'Android Mobile Phone';
+
     // Generate safe alphanumeric document ID for Firestore
     final safeDocId = token.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
 
@@ -675,7 +686,9 @@ class NotificationService {
           .doc(safeDocId)
           .set({
         'token': token,
+        'student_name': studentName,
         'platform': effectivePlatform,
+        'device_type': deviceType,
         'app_version': '4.0.0',
         'updated_at': FieldValue.serverTimestamp(),
         'last_seen': DateTime.now().toIso8601String(),
@@ -695,7 +708,9 @@ class NotificationService {
         body: jsonEncode({
           'fields': {
             'token': {'stringValue': token},
+            'student_name': {'stringValue': studentName},
             'platform': {'stringValue': effectivePlatform},
+            'device_type': {'stringValue': deviceType},
             'app_version': {'stringValue': '4.0.0'},
             'last_seen': {'stringValue': DateTime.now().toIso8601String()},
           }

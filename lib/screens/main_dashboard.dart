@@ -660,14 +660,21 @@ class _LiquidGlassNavBar extends StatelessWidget {
           isCurrentlyLive = data?['isLive'] == true;
         }
 
+        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
         return SafeArea(
           bottom: true,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+            padding: EdgeInsets.fromLTRB(
+              isLandscape ? 60 : 20,
+              0,
+              isLandscape ? 60 : 20,
+              isLandscape ? 6 : 14,
+            ),
             child: Container(
-              height: 72,
+              height: isLandscape ? 58 : 72,
               decoration: AppColors.liquidGlassTab,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: isLandscape ? 4 : 6),
               child: LayoutBuilder(
                     builder: (context, constraints) {
                       final double tabWidth = constraints.maxWidth / _items.length;

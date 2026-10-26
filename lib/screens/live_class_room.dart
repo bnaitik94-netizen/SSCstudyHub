@@ -238,10 +238,12 @@ class _LiveClassRoomState extends State<LiveClassRoom>
     _playerController.dispose();
 
     if (!kIsWeb) {
-      // 🔒 RESTORE PORTRAIT: Ensure the portrait-only app never remains in landscape
+      // 🔄 RESTORE ORIENTATIONS: Ensure all device orientations remain responsive
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     } else {
