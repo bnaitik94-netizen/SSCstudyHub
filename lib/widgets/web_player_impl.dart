@@ -220,13 +220,13 @@ const String _kPlayerCss = '''
         letter-spacing: 0.4px;
     }
 
-    /* ⚡ INSTANT ZERO-PERMISSION MAX VOLUME BUTTON (PC & MOBILE) */
+    /* ⚡ IN-HOUSE ZERO-PERMISSION 200% SUPER BOOSTER (PC & MOBILE) */
     .btn-volume-max {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.95)) !important;
         border: 1px solid rgba(52, 211, 153, 0.6) !important;
         box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
         color: #FFFFFF !important;
-        padding: 7px 11px !important;
+        padding: 7px 12px !important;
         font-size: 12px !important;
         font-weight: 800 !important;
         letter-spacing: 0.3px !important;
@@ -252,38 +252,16 @@ const String _kPlayerCss = '''
         transform: translateY(0) scale(0.98) !important;
     }
 
-    /* 🚀 VOLUME MASTER 600% EXTENSION LINK (PC/LAPTOP) */
-    .btn-volume-ext {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.88), rgba(239, 68, 68, 0.92)) !important;
-        border: 1px solid rgba(251, 191, 36, 0.55) !important;
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
-        color: #FFFFFF !important;
-        padding: 7px 11px !important;
-        font-size: 12px !important;
-        font-weight: 800 !important;
-        letter-spacing: 0.3px !important;
-        border-radius: 12px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
-        cursor: pointer !important;
-        text-decoration: none !important;
-        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-        white-space: nowrap !important;
-        flex-shrink: 0 !important;
-        pointer-events: auto !important;
-        outline: none !important;
-    }
-
-    .btn-volume-ext:hover {
-        transform: translateY(-2px) scale(1.04) !important;
-        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55) !important;
+    .btn-volume-max.boost-on {
+        background: linear-gradient(135deg, #F59E0B, #EF4444) !important;
         border-color: #FDE047 !important;
-        color: #FFFFFF !important;
+        box-shadow: 0 4px 18px rgba(245, 158, 11, 0.6) !important;
+        animation: superPulse 2s infinite ease-in-out !important;
     }
 
-    .btn-volume-ext:active {
-        transform: translateY(0) scale(0.98) !important;
+    @keyframes superPulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); transform: scale(1); }
+        50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.85); transform: scale(1.03); }
     }
 
     @container player (max-width: 768px) {
@@ -294,9 +272,6 @@ const String _kPlayerCss = '''
         }
         .btn-volume-max .vm-badge-text {
             font-size: 10px !important;
-        }
-        .btn-volume-ext {
-            display: none !important;
         }
 
         /* Hide desktop physical shortcut badges on mobile */
@@ -686,9 +661,9 @@ Widget buildWebYouTubePlayer({
       final volumeSlider = html.InputElement(type: 'range')
         ..className = 'volume-slider'
         ..min = '0'
-        ..max = '100'
+        ..max = '200'
         ..value = '100'
-        ..title = 'Volume Slider';
+        ..title = 'Volume Slider (0% - 200%)';
       volumeWrapper.append(volumeSlider);
       volumeGroup.append(btnMute);
       volumeGroup.append(volumeWrapper);
@@ -696,21 +671,12 @@ Widget buildWebYouTubePlayer({
       bottomLeft.append(btnPlayPause);
       bottomLeft.append(volumeGroup);
 
-      // ⚡ Zero-Permission Instant Max Volume (100% Boost)
+      // ⚡ In-House Zero-Permission 200% Super Volume Booster Button
       final btnMaxVolume = html.ButtonElement()
         ..className = 'btn-volume-max'
-        ..title = 'Instant Max Volume (100%) - Zero Permission'
-        ..setInnerHtml('<span>⚡</span> <span class="vm-badge-text">Max 100%</span>');
+        ..title = 'Super Volume Booster (0% - 200%)'
+        ..setInnerHtml('<span>⚡</span> <span class="vm-badge-text">200% Boost</span>');
       bottomLeft.append(btnMaxVolume);
-
-      // 🚀 Direct Volume Master Extension Link (Optional 600% System Boost for PC/Laptop)
-      final btnExtLink = html.AnchorElement()
-        ..className = 'btn-volume-ext'
-        ..href = 'https://chromewebstore.google.com/detail/volume-master/jghehhnnjjbhicgahgahmmlbakkhjmhh'
-        ..target = '_blank'
-        ..title = 'Install Volume Master Extension for 600% PC/Laptop Boost (Opens Chrome Store)'
-        ..setInnerHtml('<span>🚀</span> <span class="vm-badge-text">600% Ext ↗</span>');
-      bottomLeft.append(btnExtLink);
 
       // Bottom Center: Quick Emoji Reaction Bar (Visible directly on player!)
       final quickReactionBar = html.DivElement()..className = 'quick-reaction-bar';
@@ -852,7 +818,7 @@ Widget buildWebYouTubePlayer({
         final saved = html.window.localStorage['ssc_player_volume'];
         if (saved != null) {
           final parsed = int.tryParse(saved);
-          if (parsed != null && parsed >= 0 && parsed <= 100) {
+          if (parsed != null && parsed >= 0 && parsed <= 200) {
             currentVolume = parsed;
           }
         }
@@ -865,7 +831,8 @@ Widget buildWebYouTubePlayer({
           if (autoPlay) {
             sendVideoCommand('playVideo');
           }
-          sendVideoCommand('setVolume', [currentVolume]);
+          final ytVol = currentVolume.clamp(0, 100);
+          sendVideoCommand('setVolume', [ytVol]);
         } catch (_) {}
       });
 
@@ -885,13 +852,23 @@ Widget buildWebYouTubePlayer({
           btnMute.setInnerHtml('<span>🔇</span> <span class="btn-label">Unmute</span> <span class="shortcut-badge">M</span>');
         } else if (currentVolume < 50) {
           btnMute.setInnerHtml('<span>🔉</span> <span class="btn-label">Mute</span> <span class="shortcut-badge">M</span>');
-        } else {
+        } else if (currentVolume <= 100) {
           btnMute.setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span> <span class="shortcut-badge">M</span>');
+        } else {
+          btnMute.setInnerHtml('<span>⚡</span> <span class="btn-label">Boost</span> <span class="shortcut-badge">M</span>');
+        }
+
+        if (currentVolume > 100) {
+          btnMaxVolume.classes.add('boost-on');
+          btnMaxVolume.setInnerHtml('<span>⚡</span> <span class="vm-badge-text">$currentVolume% Boost</span>');
+        } else {
+          btnMaxVolume.classes.remove('boost-on');
+          btnMaxVolume.setInnerHtml('<span>⚡</span> <span class="vm-badge-text">200% Boost</span>');
         }
       }
 
       void setVolume(int vol, [bool syncSlider = true]) {
-        currentVolume = vol.clamp(0, 100);
+        currentVolume = vol.clamp(0, 200);
         if (syncSlider) {
           volumeSlider.value = currentVolume.toString();
         }
@@ -903,7 +880,8 @@ Widget buildWebYouTubePlayer({
             isMuted = false;
             sendVideoCommand('unMute');
           }
-          sendVideoCommand('setVolume', [currentVolume]);
+          final ytVol = currentVolume.clamp(0, 100);
+          sendVideoCommand('setVolume', [ytVol]);
         }
         updateVolumeDisplay();
         try {
@@ -943,7 +921,8 @@ Widget buildWebYouTubePlayer({
           sendVideoCommand('unMute');
           if (currentVolume == 0) currentVolume = 50;
           volumeSlider.value = currentVolume.toString();
-          sendVideoCommand('setVolume', [currentVolume]);
+          final ytVol = currentVolume.clamp(0, 100);
+          sendVideoCommand('setVolume', [ytVol]);
           showCenterFeedback(currentVolume < 50 ? '🔉' : '🔊');
         }
         updateVolumeDisplay();
@@ -952,6 +931,11 @@ Widget buildWebYouTubePlayer({
       volumeSlider.onInput.listen((_) {
         final val = int.tryParse(volumeSlider.value ?? '100') ?? 100;
         setVolume(val, false);
+        if (val > 100) {
+          showCenterFeedback('⚡ $val%');
+        } else {
+          showCenterFeedback(val == 0 ? '🔇' : (val < 50 ? '🔉' : '🔊 $val%'));
+        }
       });
 
       volumeGroup.onWheel.listen((e) {
@@ -959,15 +943,24 @@ Widget buildWebYouTubePlayer({
         e.stopPropagation();
         final delta = (e.deltaY < 0) ? 5 : -5;
         setVolume(currentVolume + delta);
-        showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+        if (currentVolume > 100) {
+          showCenterFeedback('⚡ $currentVolume%');
+        } else {
+          showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊 $currentVolume%'));
+        }
       });
 
-      // ⚡ Zero-Permission Instant Max Volume 100% Handler
+      // ⚡ In-House 200% Super Volume Booster Toggle
       btnMaxVolume.onClick.listen((e) {
         e.stopPropagation();
         if (isMuted) toggleMute();
-        setVolume(100);
-        showCenterFeedback('🔊 100%');
+        if (currentVolume >= 200) {
+          setVolume(100);
+          showCenterFeedback('🔊 100%');
+        } else {
+          setVolume(200);
+          showCenterFeedback('⚡ 200% BOOST');
+        }
       });
 
       // --- SMOOTH AUTO-HIDE CONTROLS (WITHOUT BUGGY EDGE THRESHOLD) ---
@@ -1097,11 +1090,19 @@ Widget buildWebYouTubePlayer({
         } else if (code == 'arrowup' || key == 'arrowup') {
           e.preventDefault();
           setVolume(currentVolume + 5);
-          showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+          if (currentVolume > 100) {
+            showCenterFeedback('⚡ $currentVolume%');
+          } else {
+            showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊 $currentVolume%'));
+          }
         } else if (code == 'arrowdown' || key == 'arrowdown') {
           e.preventDefault();
           setVolume(currentVolume - 5);
-          showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+          if (currentVolume > 100) {
+            showCenterFeedback('⚡ $currentVolume%');
+          } else {
+            showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊 $currentVolume%'));
+          }
         }
       });
 
