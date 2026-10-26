@@ -115,6 +115,101 @@
         } catch(e) {}
       }
     };
+
+    // 🚀 SSC 600% VOLUME MASTER SUPER BOOSTER ENGINE (FOR PC/LAPTOP)
+    window.sscVolumeBooster = {
+      audioCtx: null,
+      gainNode: null,
+      stream: null,
+      isActive: false,
+      volume: 100, // 0 to 600
+
+      async activate() {
+        if (this.isActive) return true;
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert("Your browser does not support Web Audio tab capture. Please use Google Chrome, Edge, or Brave on PC/Laptop.");
+            return false;
+          }
+
+          var stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: {
+              suppressLocalAudioPlayback: true
+            },
+            preferCurrentTab: true,
+            selfBrowserSurface: "include"
+          });
+
+          // Terminate video tracks immediately to eliminate CPU/GPU consumption
+          var vTracks = stream.getVideoTracks();
+          for (var i = 0; i < vTracks.length; i++) {
+            vTracks[i].stop();
+          }
+
+          var aTracks = stream.getAudioTracks();
+          if (!aTracks || aTracks.length === 0) {
+            alert("No audio track was selected. Please make sure to check 'Share tab audio' in the browser dialog.");
+            return false;
+          }
+
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          this.audioCtx = new AudioContextClass();
+          var source = this.audioCtx.createMediaStreamSource(stream);
+          this.gainNode = this.audioCtx.createGain();
+
+          this.gainNode.gain.value = this.volume / 100.0;
+          source.connect(this.gainNode);
+          this.gainNode.connect(this.audioCtx.destination);
+
+          this.stream = stream;
+          this.isActive = true;
+
+          var self = this;
+          aTracks[0].onended = function() {
+            self.deactivate();
+          };
+
+          window.dispatchEvent(new CustomEvent('ssc-volume-booster-changed', {
+            detail: { isActive: true, volume: this.volume }
+          }));
+
+          return true;
+        } catch(err) {
+          console.warn("Audio booster activation canceled or failed:", err);
+          return false;
+        }
+      },
+
+      setVolume(val) {
+        this.volume = Math.max(0, Math.min(600, parseInt(val) || 100));
+        if (this.gainNode && this.audioCtx) {
+          this.gainNode.gain.value = this.volume / 100.0;
+        }
+        window.dispatchEvent(new CustomEvent('ssc-volume-booster-changed', {
+          detail: { isActive: this.isActive, volume: this.volume }
+        }));
+      },
+
+      deactivate() {
+        if (this.stream) {
+          try {
+            var tracks = this.stream.getTracks();
+            for (var i = 0; i < tracks.length; i++) tracks[i].stop();
+          } catch(e) {}
+          this.stream = null;
+        }
+        if (this.audioCtx) {
+          try { this.audioCtx.close(); } catch(e) {}
+          this.audioCtx = null;
+        }
+        this.gainNode = null;
+        this.isActive = false;
+        window.dispatchEvent(new CustomEvent('ssc-volume-booster-changed', {
+          detail: { isActive: false, volume: this.volume }
+        }));
+      }
+    };
   </script>
 </head>
 <body style="background-color: #0B132B; margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100vh;">

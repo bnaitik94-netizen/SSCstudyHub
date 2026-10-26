@@ -2,6 +2,8 @@
 import 'dart:ui_web' as ui_web;
 // ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
+// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
+import 'dart:js' as js;
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -218,6 +220,247 @@ const String _kPlayerCss = '''
         font-family: monospace;
         font-weight: 700;
         letter-spacing: 0.4px;
+    }
+
+    /* 🚀 VOLUME MASTER 600% SUPER BOOSTER (PC/LAPTOP) */
+    .btn-volume-boost {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(239, 68, 68, 0.95)) !important;
+        border: 1px solid rgba(251, 191, 36, 0.6) !important;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4) !important;
+        color: #FFFFFF !important;
+        padding: 7px 12px !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.3px !important;
+        border-radius: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        cursor: pointer !important;
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        pointer-events: auto !important;
+        outline: none !important;
+    }
+
+    .btn-volume-boost:hover {
+        transform: translateY(-2px) scale(1.04) !important;
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6) !important;
+        border-color: #FDE047 !important;
+    }
+
+    .btn-volume-boost.boost-active {
+        background: linear-gradient(135deg, #EF4444, #8B5CF6) !important;
+        border-color: #C084FC !important;
+        animation: boosterGlow 2s infinite ease-in-out !important;
+    }
+
+    @keyframes boosterGlow {
+        0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+        50% { box-shadow: 0 0 22px rgba(139, 92, 246, 0.85); }
+    }
+
+    /* Floating Volume Master Control Dialog */
+    .volume-master-modal {
+        position: absolute;
+        bottom: 74px;
+        left: 20px;
+        z-index: 50;
+        background: rgba(15, 23, 42, 0.96);
+        border: 1.5px solid rgba(251, 191, 36, 0.45);
+        border-radius: 16px;
+        padding: 16px 18px;
+        width: 320px;
+        box-shadow: 0 14px 44px rgba(0, 0, 0, 0.85), 0 0 24px rgba(245, 158, 11, 0.25);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: #FFFFFF;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        user-select: none;
+        pointer-events: auto;
+    }
+
+    .volume-master-modal.show-modal {
+        display: flex;
+        animation: boostModalSlideIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes boostModalSlideIn {
+        from { opacity: 0; transform: translateY(12px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .vm-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        padding-bottom: 8px;
+    }
+
+    .vm-title {
+        font-size: 13.5px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #FBBF24;
+        letter-spacing: 0.3px;
+    }
+
+    .vm-close-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    .vm-close-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+    }
+
+    .vm-current-level {
+        text-align: center;
+        font-size: 32px;
+        font-weight: 900;
+        color: #38BDF8;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+        margin: 2px 0;
+    }
+
+    .vm-current-level.is-boosted {
+        color: #F59E0B;
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
+    }
+
+    .vm-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        border-radius: 6px;
+        background: linear-gradient(to right, #38BDF8 0%, #38BDF8 16.6%, #F59E0B 16.6%, #EF4444 66.6%, #8B5CF6 100%);
+        outline: none;
+        cursor: pointer;
+    }
+
+    .vm-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        border: 2.5px solid #F59E0B;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .vm-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.25);
+    }
+
+    .vm-presets-row {
+        display: flex;
+        gap: 6px;
+        justify-content: space-between;
+    }
+
+    .vm-preset-chip {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        color: #FFFFFF;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px 8px;
+        cursor: pointer;
+        flex: 1;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+
+    .vm-preset-chip:hover {
+        background: rgba(245, 158, 11, 0.25);
+        border-color: #F59E0B;
+        transform: translateY(-1px);
+    }
+
+    .vm-preset-chip.active {
+        background: #F59E0B;
+        color: #000000;
+        border-color: #FBBF24;
+        font-weight: 800;
+    }
+
+    .vm-action-btn {
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .vm-action-btn.btn-activate {
+        background: linear-gradient(135deg, #F59E0B, #EF4444);
+        color: #FFFFFF;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+
+    .vm-action-btn.btn-activate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(245, 158, 11, 0.55);
+    }
+
+    .vm-action-btn.btn-deactivate {
+        background: rgba(239, 68, 68, 0.2);
+        color: #FCA5A5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .vm-action-btn.btn-deactivate:hover {
+        background: rgba(239, 68, 68, 0.35);
+    }
+
+    .vm-extension-link {
+        font-size: 10.5px;
+        color: rgba(255, 255, 255, 0.65);
+        text-decoration: none;
+        text-align: center;
+        display: block;
+        transition: color 0.15s ease;
+        padding-top: 2px;
+    }
+
+    .vm-extension-link:hover {
+        color: #38BDF8;
+        text-decoration: underline;
+    }
+
+    @container player (max-width: 768px) {
+        .btn-volume-boost {
+            display: none !important;
+        }
+        .volume-master-modal {
+            display: none !important;
+        }
     }
 
     /* Custom App-Like Controls Overlay */
@@ -594,6 +837,67 @@ Widget buildWebYouTubePlayer({
       bottomLeft.append(btnPlayPause);
       bottomLeft.append(volumeGroup);
 
+      // 🚀 Volume Master 600% Super Booster Button (PC/Laptop Exclusive)
+      final btnBooster = html.ButtonElement()
+        ..className = 'btn-volume-boost'
+        ..title = 'Volume Master: Amplify volume up to 600%'
+        ..setInnerHtml('<span>🚀</span> <span class="vm-badge-text">Boost 600%</span>');
+      bottomLeft.append(btnBooster);
+
+      // 🎛️ Floating Volume Master Modal Dialog
+      final boosterModal = html.DivElement()..className = 'volume-master-modal';
+
+      final bmHeader = html.DivElement()..className = 'vm-header';
+      final bmTitle = html.DivElement()
+        ..className = 'vm-title'
+        ..setInnerHtml('<span>🚀</span> <span>Volume Master Booster</span>');
+      final bmClose = html.ButtonElement()
+        ..className = 'vm-close-btn'
+        ..text = '✕'
+        ..title = 'Close Dialog';
+      bmHeader.append(bmTitle);
+      bmHeader.append(bmClose);
+
+      final bmLevel = html.DivElement()
+        ..className = 'vm-current-level'
+        ..text = '100%';
+
+      final bmSlider = html.InputElement(type: 'range')
+        ..className = 'vm-slider'
+        ..min = '0'
+        ..max = '600'
+        ..value = '100';
+
+      final bmPresets = html.DivElement()..className = 'vm-presets-row';
+      const presets = [100, 200, 300, 400, 600];
+      final List<html.ButtonElement> presetChips = [];
+      for (final p in presets) {
+        final chip = html.ButtonElement()
+          ..className = 'vm-preset-chip${p == 100 ? " active" : ""}'
+          ..text = p == 600 ? '600% 🚀' : '$p%';
+        presetChips.add(chip);
+        bmPresets.append(chip);
+      }
+
+      final bmActionBtn = html.ButtonElement()
+        ..className = 'vm-action-btn btn-activate'
+        ..setInnerHtml('<span>⚡</span> <span>Enable 600% Booster</span>');
+
+      final bmExtLink = html.AnchorElement()
+        ..className = 'vm-extension-link'
+        ..href = 'https://chromewebstore.google.com/detail/volume-master/jghehhnnjjbhicgahgahmmlbakkhjmhh'
+        ..target = '_blank'
+        ..text = '🧩 Or Install Volume Master Chrome Extension ↗';
+
+      boosterModal.append(bmHeader);
+      boosterModal.append(bmLevel);
+      boosterModal.append(bmSlider);
+      boosterModal.append(bmPresets);
+      boosterModal.append(bmActionBtn);
+      boosterModal.append(bmExtLink);
+
+      overlay.append(boosterModal);
+
       // Bottom Center: Quick Emoji Reaction Bar (Visible directly on player!)
       final quickReactionBar = html.DivElement()..className = 'quick-reaction-bar';
       const emojis = ['❤️', '🔥', '👏', '💡', '🚀', '🙋‍♂️'];
@@ -834,6 +1138,107 @@ Widget buildWebYouTubePlayer({
         showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
       });
 
+      // 🚀 VOLUME MASTER 600% SUPER BOOSTER INTERACTION LOGIC
+      bool isBoosterActive = false;
+
+      void updateBoosterDisplay(bool active, int level) {
+        isBoosterActive = active;
+
+        bmSlider.value = level.toString();
+        bmLevel.text = '$level%';
+        if (level > 100) {
+          bmLevel.classes.add('is-boosted');
+        } else {
+          bmLevel.classes.remove('is-boosted');
+        }
+
+        for (int i = 0; i < presets.length; i++) {
+          if (presets[i] == level) {
+            presetChips[i].classes.add('active');
+          } else {
+            presetChips[i].classes.remove('active');
+          }
+        }
+
+        if (active) {
+          btnBooster.classes.add('boost-active');
+          btnBooster.setInnerHtml('<span>🚀</span> <span class="vm-badge-text">$level% Boost</span>');
+          bmActionBtn.className = 'vm-action-btn btn-deactivate';
+          bmActionBtn.setInnerHtml('<span>✕</span> <span>Turn OFF Booster</span>');
+        } else {
+          btnBooster.classes.remove('boost-active');
+          btnBooster.setInnerHtml('<span>🚀</span> <span class="vm-badge-text">Boost 600%</span>');
+          bmActionBtn.className = 'vm-action-btn btn-activate';
+          bmActionBtn.setInnerHtml('<span>⚡</span> <span>Enable 600% Booster</span>');
+        }
+      }
+
+      btnBooster.onClick.listen((e) {
+        e.stopPropagation();
+        boosterModal.classes.toggle('show-modal');
+      });
+
+      bmClose.onClick.listen((e) {
+        e.stopPropagation();
+        boosterModal.classes.remove('show-modal');
+      });
+
+      bmActionBtn.onClick.listen((e) {
+        e.stopPropagation();
+        try {
+          final boosterObj = js.context['sscVolumeBooster'];
+          if (boosterObj != null) {
+            if (isBoosterActive) {
+              // ignore: avoid_dynamic_calls
+              boosterObj.callMethod('deactivate', []);
+            } else {
+              // ignore: avoid_dynamic_calls
+              boosterObj.callMethod('activate', []);
+            }
+          }
+        } catch (_) {}
+      });
+
+      void applyBoosterVolume(int val) {
+        try {
+          final boosterObj = js.context['sscVolumeBooster'];
+          if (boosterObj != null) {
+            // ignore: avoid_dynamic_calls
+            boosterObj.callMethod('setVolume', [val]);
+            if (val > 100 && !isBoosterActive) {
+              // ignore: avoid_dynamic_calls
+              boosterObj.callMethod('activate', []);
+            }
+          }
+        } catch (_) {}
+      }
+
+      bmSlider.onInput.listen((_) {
+        final val = int.tryParse(bmSlider.value ?? '100') ?? 100;
+        applyBoosterVolume(val);
+      });
+
+      for (int i = 0; i < presets.length; i++) {
+        final p = presets[i];
+        presetChips[i].onClick.listen((e) {
+          e.stopPropagation();
+          applyBoosterVolume(p);
+        });
+      }
+
+      html.window.on['ssc-volume-booster-changed'].listen((event) {
+        try {
+          if (event is html.CustomEvent && event.detail != null) {
+            final detail = event.detail;
+            // ignore: avoid_dynamic_calls
+            final active = detail['isActive'] == true;
+            // ignore: avoid_dynamic_calls
+            final vol = int.tryParse(detail['volume'].toString()) ?? 100;
+            updateBoosterDisplay(active, vol);
+          }
+        } catch (_) {}
+      });
+
       // --- SMOOTH AUTO-HIDE CONTROLS (WITHOUT BUGGY EDGE THRESHOLD) ---
       Timer? hideTimer;
       void hideControls() {
@@ -868,6 +1273,15 @@ Widget buildWebYouTubePlayer({
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
       });
       bottomBar.onMouseLeave.listen((_) {
+        hideTimer?.cancel();
+        hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
+      });
+      boosterModal.onMouseEnter.listen((_) {
+        hideTimer?.cancel();
+        overlay.classes.add('show-controls');
+        interceptor.style.cursor = 'default';
+      });
+      boosterModal.onMouseLeave.listen((_) {
         hideTimer?.cancel();
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
       });
