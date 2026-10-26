@@ -18,26 +18,36 @@ class WebFullscreenHelper {
 
   static Future<void> enterFullscreen() async {
     try {
+      js.context.callMethod('requestAppFullscreen');
+      return;
+    } catch (_) {}
+    try {
       final elem = html.document.documentElement;
       if (elem != null) {
         elem.requestFullscreen();
+        try {
+          // ignore: avoid_dynamic_calls
+          (html.window.screen as dynamic)?.orientation?.lock('landscape');
+        } catch (_) {}
         return;
       }
-    } catch (_) {}
-    try {
-      js.context.callMethod('requestAppFullscreen');
     } catch (_) {}
   }
 
   static Future<void> exitFullscreen() async {
     try {
+      js.context.callMethod('exitAppFullscreen');
+      return;
+    } catch (_) {}
+    try {
+      try {
+        // ignore: avoid_dynamic_calls
+        (html.window.screen as dynamic)?.orientation?.unlock();
+      } catch (_) {}
       if (isFullscreen()) {
         html.document.exitFullscreen();
         return;
       }
-    } catch (_) {}
-    try {
-      js.context.callMethod('exitAppFullscreen');
     } catch (_) {}
   }
 

@@ -574,6 +574,12 @@ const String _kPlayerCss = '''
         }
     }
 
+    @media (orientation: portrait) {
+        .btn-chat, .btn-doubts {
+            display: none !important;
+        }
+    }
+
     @media (max-width: 860px) {
         .overlay-btn .btn-label {
             display: none !important;
@@ -1280,10 +1286,8 @@ Widget buildWebYouTubePlayer({
 
       btnBack.onClick.listen((e) {
         e.stopPropagation();
-        if (html.document.fullscreenElement != null) {
-          try {
-            html.document.exitFullscreen();
-          } catch (_) {}
+        if (WebFullscreenHelper.isFullscreen()) {
+          WebFullscreenHelper.exitFullscreen();
           Timer(const Duration(milliseconds: 60), updateFsButton);
           return;
         }
@@ -1302,13 +1306,11 @@ Widget buildWebYouTubePlayer({
 
       btnFS.onClick.listen((e) {
         e.stopPropagation();
-        try {
-          if (html.document.fullscreenElement != null) {
-            html.document.exitFullscreen();
-          } else {
-            html.document.documentElement?.requestFullscreen();
-          }
-        } catch (_) {}
+        if (WebFullscreenHelper.isFullscreen()) {
+          WebFullscreenHelper.exitFullscreen();
+        } else {
+          WebFullscreenHelper.enterFullscreen();
+        }
         Timer(const Duration(milliseconds: 60), updateFsButton);
         Timer(const Duration(milliseconds: 250), updateFsButton);
         html.window.dispatchEvent(html.CustomEvent('app-player-fullscreen'));

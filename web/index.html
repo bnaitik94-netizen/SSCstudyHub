@@ -9,9 +9,12 @@
   <meta name="description" content="SSC Study Hub Pro: live classes, recorded lessons, schedules, and student support.">
 
   <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SSC Study Hub">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png"/>
 
@@ -40,19 +43,35 @@
 
     window.requestAppFullscreen = function() {
       var elem = document.documentElement;
+      var p = null;
       if (elem.requestFullscreen) {
-        return elem.requestFullscreen();
+        p = elem.requestFullscreen();
       } else if (elem.webkitRequestFullscreen) {
-        return elem.webkitRequestFullscreen();
+        p = elem.webkitRequestFullscreen();
       } else if (elem.mozRequestFullScreen) {
-        return elem.mozRequestFullScreen();
+        p = elem.mozRequestFullScreen();
       } else if (elem.msRequestFullscreen) {
-        return elem.msRequestFullscreen();
+        p = elem.msRequestFullscreen();
       }
-      return Promise.resolve();
+
+      // Automatically lock orientation to landscape on mobile devices
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function(){});
+        }
+      } catch(e) {}
+
+      return p || Promise.resolve();
     };
 
     window.exitAppFullscreen = function() {
+      // Restore natural device orientation
+      try {
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      } catch(e) {}
+
       if (document.exitFullscreen) {
         return document.exitFullscreen();
       } else if (document.webkitExitFullscreen) {
@@ -117,7 +136,161 @@
     };
   </script>
 </head>
-<body style="background-color: #0B132B; margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100vh;">
+<body style="background-color: #0B132B; margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; position: fixed; inset: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; overscroll-behavior: none;">
   <script src="flutter_bootstrap.js" async></script>
+<!-- IPHONE-15-PRO-OVERLAY-START -->
+<style>
+  html, body {
+    background: radial-gradient(circle at center, #1a1d26 0%, #090a0f 100%) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    user-select: none !important;
+  }
+
+  /* Force Flutter's canvas into the exact iPhone 15 Pro OLED screen */
+  flutter-view, flt-glass-pane {
+    position: fixed !important;
+    width: 393px !important;
+    height: 852px !important;
+    left: 50% !important;
+    top: 50% !important;
+    margin: 0 !important;
+    border-radius: 50px !important;
+    overflow: hidden !important;
+    background: #000000 !important;
+    z-index: 10 !important;
+    transform-origin: center center !important;
+    transform: translate(-50%, -50%) scale(var(--iphone-scale, 0.85)) !important;
+    box-shadow: none !important;
+  }
+
+  /* Outer Titanium Hardware Chassis */
+  #iphone-15-pro-chassis {
+    position: fixed !important;
+    width: 419px !important;
+    height: 878px !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform-origin: center center !important;
+    transform: translate(-50%, -50%) scale(var(--iphone-scale, 0.85)) !important;
+    border-radius: 63px !important;
+    box-sizing: border-box !important;
+    border: 3.5px solid #747478 !important;
+    box-shadow:
+      inset 0 0 0 10px #141416,
+      0 30px 70px rgba(0, 0, 0, 0.9),
+      0 0 0 1px #2c2c2e !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  }
+
+  /* Hardware Side Buttons */
+  .ip-hw-btn {
+    position: absolute !important;
+    background: linear-gradient(180deg, #8e8e93, #545458) !important;
+    width: 4px !important;
+    border-radius: 2px !important;
+  }
+  .ip-btn-action { left: -7px !important; top: 132px !important; height: 32px !important; }
+  .ip-btn-volup  { left: -7px !important; top: 188px !important; height: 62px !important; }
+  .ip-btn-voldn  { left: -7px !important; top: 262px !important; height: 62px !important; }
+  .ip-btn-power  { right: -7px !important; top: 212px !important; height: 92px !important; }
+
+  /* Top Status Bar */
+  #ip-status-bar {
+    position: absolute !important;
+    top: 13px !important;
+    left: 13px !important;
+    right: 13px !important;
+    height: 48px !important;
+    padding: 0 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    mix-blend-mode: difference !important;
+  }
+
+  /* Dynamic Island */
+  #ip-dynamic-island {
+    position: absolute !important;
+    top: 22px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 120px !important;
+    height: 34px !important;
+    background: #000000 !important;
+    border-radius: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding-right: 11px !important;
+    box-sizing: border-box !important;
+  }
+
+  #ip-lens {
+    width: 11px !important;
+    height: 11px !important;
+    border-radius: 50% !important;
+    background: radial-gradient(circle at 35% 35%, #2b3a67, #0b0e1a 70%) !important;
+    border: 1.5px solid #1c2238 !important;
+  }
+
+  /* Bottom Home Indicator */
+  #ip-home-bar {
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 136px !important;
+    height: 5px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-radius: 10px !important;
+    mix-blend-mode: difference !important;
+  }
+</style>
+
+<div id="iphone-15-pro-chassis">
+  <div class="ip-hw-btn ip-btn-action"></div>
+  <div class="ip-hw-btn ip-btn-volup"></div>
+  <div class="ip-hw-btn ip-btn-voldn"></div>
+  <div class="ip-hw-btn ip-btn-power"></div>
+  <div id="ip-status-bar">
+    <span>9:41</span>
+    <span style="font-size: 12px; letter-spacing: 1px;">5G &#9608;&#9608;</span>
+  </div>
+  <div id="ip-dynamic-island">
+    <div id="ip-lens"></div>
+  </div>
+  <div id="ip-home-bar"></div>
+</div>
+
+<script>
+  (function() {
+    function updateScale() {
+      const scale = Math.min((window.innerWidth - 24) / 435, (window.innerHeight - 24) / 895, 1);
+      document.documentElement.style.setProperty('--iphone-scale', scale.toFixed(4));
+    }
+    window.addEventListener('resize', updateScale);
+    updateScale();
+
+    // Ensure the iPhone frame always stays on top after Flutter mounts its canvas
+    const observer = new MutationObserver(() => {
+      const chassis = document.getElementById('iphone-15-pro-chassis');
+      if (chassis && document.body.lastElementChild !== chassis) {
+        document.body.appendChild(chassis);
+      }
+    });
+    observer.observe(document.body, { childList: true });
+  })();
+</script>
+<!-- IPHONE-15-PRO-OVERLAY-END -->
 </body>
 </html>
+

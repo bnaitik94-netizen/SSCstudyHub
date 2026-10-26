@@ -433,6 +433,9 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
   // ─────────────────────────── System chrome ────────────────────────────────
 
   _PlayerLayout _layoutOf(BuildContext context) {
+    if (kIsWeb && WebFullscreenHelper.isFullscreen()) {
+      return _PlayerLayout.immersive;
+    }
     final size = MediaQuery.sizeOf(context);
     if (size.width <= size.height) return _PlayerLayout.portrait;
 

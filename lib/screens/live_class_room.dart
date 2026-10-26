@@ -81,6 +81,15 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
   bool _computeIsLandscape(Orientation orientation) {
     if (kIsWeb) {
+      // 1. Explicit user toggle (fullscreen button in player or app) takes highest priority
+      if (_webForceLandscape != null) {
+        return _webForceLandscape!;
+      }
+      // 2. Browser in fullscreen mode is landscape
+      if (WebFullscreenHelper.isFullscreen()) {
+        return true;
+      }
+
       final media = MediaQuery.of(context);
       final bool isMobileScreen = media.size.width < 768;
       // 📱 Mobile Web: strictly follow natural device orientation or physical landscape aspect
@@ -90,10 +99,6 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       // 💻 PC / Desktop / Laptop screens with landscape aspect or width >= 768 are ALWAYS landscape:
       if (media.size.width >= 768 && media.size.width > media.size.height) {
         return true;
-      }
-      if (WebFullscreenHelper.isFullscreen()) return true;
-      if (_webForceLandscape != null) {
-        return _webForceLandscape!;
       }
       return orientation == Orientation.landscape;
     }
@@ -331,7 +336,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
     if (kIsWeb) {
       final isCurrentlyFs = WebFullscreenHelper.isFullscreen();
-      if (isCurrentlyFs) {
+      if (isCurrentlyFs || _webForceLandscape == true) {
         WebFullscreenHelper.exitFullscreen();
         setState(() {
           _webForceLandscape = null;
@@ -1267,6 +1272,39 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                           right: 0,
                           bottom: 0,
                           child: _buildPortraitInfoAndTabs(),
+                        ),
+
+                      // 🔄 MOBILE WEB ROTATION HINT (When in fullscreen on portrait screen)
+                      if (kIsWeb && isLandscape && totalWidth < totalHeight)
+                        Positioned(
+                          top: 24,
+                          left: 20,
+                          right: 20,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white24, width: 1),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.screen_rotation_rounded, color: AppColors.accent, size: 16),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Rotate device for full screen",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ).animate().fadeIn(duration: 300.ms),
                         ),
 
                       // 💻 LANDSCAPE SIDE PANEL: Side-by-side on wide screens (>=900px)

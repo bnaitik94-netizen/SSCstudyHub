@@ -582,26 +582,6 @@ class _MainDashboardState extends State<MainDashboard> {
           );
         }
 
-        if (kIsWeb && !isDesktop) {
-          content = Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      blurRadius: 24,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: content,
-              ),
-            ),
-          );
-        }
-
         return content;
       },
     );
