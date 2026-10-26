@@ -97,28 +97,127 @@ const String _kPlayerCss = '''
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.5);
-        width: 72px;
-        height: 72px;
-        background: rgba(0, 0, 0, 0.72);
+        width: 76px;
+        height: 76px;
+        background: rgba(15, 23, 42, 0.85);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #FFFFFF;
-        font-size: 30px;
+        font-size: 32px;
         pointer-events: none;
         z-index: 28;
         opacity: 0;
         transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
     }
 
     .center-feedback-icon.show-feedback {
         transform: translate(-50%, -50%) scale(1.1);
         opacity: 1;
+    }
+
+    /* Live Beacon Indicator */
+    .live-badge-beacon {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(239, 68, 68, 0.22);
+        border: 1px solid rgba(239, 68, 68, 0.6);
+        padding: 4px 10px;
+        border-radius: 20px;
+        color: #FFFFFF;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        user-select: none;
+        flex-shrink: 0;
+    }
+
+    .live-beacon-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #EF4444;
+        box-shadow: 0 0 8px #EF4444;
+        animation: liveBeaconPulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes liveBeaconPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.35; transform: scale(0.8); }
+    }
+
+    /* 🔊 Granular Volume Slider Container */
+    .volume-control-group {
+        display: flex;
+        align-items: center;
+        position: relative;
+        pointer-events: auto;
+    }
+
+    .volume-slider-wrapper {
+        width: 0px;
+        opacity: 0;
+        overflow: hidden;
+        transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease;
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+
+    .volume-control-group:hover .volume-slider-wrapper,
+    .volume-control-group.active .volume-slider-wrapper {
+        width: 84px;
+        opacity: 1;
+        padding: 0 8px 0 4px;
+    }
+
+    .volume-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.35);
+        outline: none;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #38BDF8;
+        cursor: pointer;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+        transition: transform 0.12s ease;
+    }
+
+    .volume-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.25);
+        background: #FFFFFF;
+    }
+
+    .shortcut-badge {
+        font-size: 10px;
+        opacity: 0.6;
+        background: rgba(255, 255, 255, 0.16);
+        padding: 1px 5px;
+        border-radius: 4px;
+        margin-left: 3px;
+        font-family: monospace;
+        font-weight: 700;
+        letter-spacing: 0.4px;
     }
 
     /* Custom App-Like Controls Overlay */
@@ -437,12 +536,21 @@ Widget buildWebYouTubePlayer({
       final topLeft = html.DivElement()..className = 'overlay-top-left';
       final btnBack = html.ButtonElement()
         ..className = 'overlay-btn btn-back'
+        ..title = 'Back to Dashboard (Esc)'
         ..setInnerHtml('<span>⬅</span> <span class="btn-label">Back</span>');
       topLeft.append(btnBack);
+
+      if (isLive) {
+        final liveBeacon = html.DivElement()
+          ..className = 'live-badge-beacon'
+          ..setInnerHtml('<span class="live-beacon-dot"></span> <span>LIVE</span>');
+        topLeft.append(liveBeacon);
+      }
 
       if (title != null && title.trim().isNotEmpty) {
         final titleSpan = html.SpanElement()
           ..className = 'overlay-title'
+          ..title = title
           ..text = title;
         topLeft.append(titleSpan);
       }
@@ -450,6 +558,7 @@ Widget buildWebYouTubePlayer({
 
       final btnSync = html.ButtonElement()
         ..className = 'overlay-btn btn-sync'
+        ..title = 'Jump to Realtime Live Broadcast'
         ..setInnerHtml('🔴 <span class="btn-label">SYNC LIVE</span>');
       if (isLive) {
         topBar.append(btnSync);
@@ -458,18 +567,32 @@ Widget buildWebYouTubePlayer({
       // --- BOTTOM BAR ---
       final bottomBar = html.DivElement()..className = 'overlay-bottom-bar';
 
-      // Bottom Left: Play/Pause & Mute
+      // Bottom Left: Play/Pause & Granular Volume Control
       final bottomLeft = html.DivElement()..className = 'overlay-bottom-left';
       final btnPlayPause = html.ButtonElement()
         ..className = 'overlay-btn btn-play-pause'
-        ..title = 'Play / Pause'
-        ..setInnerHtml('<span>⏸</span> <span class="btn-label">Pause</span>');
+        ..title = 'Play / Pause (Space / K)'
+        ..setInnerHtml('<span>⏸</span> <span class="btn-label">Pause</span> <span class="shortcut-badge">K</span>');
+
+      final volumeGroup = html.DivElement()..className = 'volume-control-group';
       final btnMute = html.ButtonElement()
         ..className = 'overlay-btn btn-mute'
-        ..title = 'Mute / Unmute'
-        ..setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span>');
+        ..title = 'Mute / Unmute (M) • Scroll to adjust'
+        ..setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span> <span class="shortcut-badge">M</span>');
+      
+      final volumeWrapper = html.DivElement()..className = 'volume-slider-wrapper';
+      final volumeSlider = html.InputElement(type: 'range')
+        ..className = 'volume-slider'
+        ..min = '0'
+        ..max = '100'
+        ..value = '100'
+        ..title = 'Volume Slider';
+      volumeWrapper.append(volumeSlider);
+      volumeGroup.append(btnMute);
+      volumeGroup.append(volumeWrapper);
+
       bottomLeft.append(btnPlayPause);
-      bottomLeft.append(btnMute);
+      bottomLeft.append(volumeGroup);
 
       // Bottom Center: Quick Emoji Reaction Bar (Visible directly on player!)
       final quickReactionBar = html.DivElement()..className = 'quick-reaction-bar';
@@ -479,16 +602,16 @@ Widget buildWebYouTubePlayer({
       final bottomRight = html.DivElement()..className = 'overlay-bottom-right';
       final btnFS = html.ButtonElement()
         ..className = 'overlay-btn btn-fullscreen-toggle'
-        ..title = 'Toggle Fullscreen'
-        ..setInnerHtml('<span>⛶</span> <span class="btn-label">Fullscreen</span>');
+        ..title = 'Toggle Fullscreen (F) • Double-click video'
+        ..setInnerHtml('<span>⛶</span> <span class="btn-label">Fullscreen</span> <span class="shortcut-badge">F</span>');
       final btnChat = html.ButtonElement()
         ..className = 'overlay-btn btn-chat'
-        ..title = 'Live Class Chat'
-        ..setInnerHtml('<span>💬</span> <span class="btn-label">Live Chat</span>');
+        ..title = 'Live Class Chat (C)'
+        ..setInnerHtml('<span>💬</span> <span class="btn-label">Live Chat</span> <span class="shortcut-badge">C</span>');
       final btnDoubts = html.ButtonElement()
         ..className = 'overlay-btn btn-doubts'
-        ..title = 'AI Doubts Solver'
-        ..setInnerHtml('<span>✨</span> <span class="btn-label">Doubts</span>');
+        ..title = 'AI Doubts Solver (D)'
+        ..setInnerHtml('<span>✨</span> <span class="btn-label">Doubts</span> <span class="shortcut-badge">D</span>');
 
       bottomRight.append(btnFS);
       bottomRight.append(btnChat);
@@ -606,12 +729,25 @@ Widget buildWebYouTubePlayer({
         } catch (_) {}
       }
 
+      int currentVolume = 100;
+      try {
+        final saved = html.window.localStorage['ssc_player_volume'];
+        if (saved != null) {
+          final parsed = int.tryParse(saved);
+          if (parsed != null && parsed >= 0 && parsed <= 100) {
+            currentVolume = parsed;
+          }
+        }
+      } catch (_) {}
+      volumeSlider.value = currentVolume.toString();
+
       iframe.onLoad.listen((_) {
         try {
           iframe.contentWindow?.postMessage('{"event":"listening"}', '*');
           if (autoPlay) {
             sendVideoCommand('playVideo');
           }
+          sendVideoCommand('setVolume', [currentVolume]);
         } catch (_) {}
       });
 
@@ -626,15 +762,46 @@ Widget buildWebYouTubePlayer({
         });
       }
 
+      void updateVolumeDisplay() {
+        if (isMuted || currentVolume == 0) {
+          btnMute.setInnerHtml('<span>🔇</span> <span class="btn-label">Unmute</span> <span class="shortcut-badge">M</span>');
+        } else if (currentVolume < 50) {
+          btnMute.setInnerHtml('<span>🔉</span> <span class="btn-label">Mute</span> <span class="shortcut-badge">M</span>');
+        } else {
+          btnMute.setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span> <span class="shortcut-badge">M</span>');
+        }
+      }
+
+      void setVolume(int vol, [bool syncSlider = true]) {
+        currentVolume = vol.clamp(0, 100);
+        if (syncSlider) {
+          volumeSlider.value = currentVolume.toString();
+        }
+        if (currentVolume == 0) {
+          isMuted = true;
+          sendVideoCommand('mute');
+        } else {
+          if (isMuted) {
+            isMuted = false;
+            sendVideoCommand('unMute');
+          }
+          sendVideoCommand('setVolume', [currentVolume]);
+        }
+        updateVolumeDisplay();
+        try {
+          html.window.localStorage['ssc_player_volume'] = currentVolume.toString();
+        } catch (_) {}
+      }
+
       void togglePlay() {
         isPlaying = !isPlaying;
         if (isPlaying) {
           sendVideoCommand('playVideo');
-          btnPlayPause.setInnerHtml('<span>⏸</span> <span class="btn-label">Pause</span>');
+          btnPlayPause.setInnerHtml('<span>⏸</span> <span class="btn-label">Pause</span> <span class="shortcut-badge">K</span>');
           showCenterFeedback('▶');
         } else {
           sendVideoCommand('pauseVideo');
-          btnPlayPause.setInnerHtml('<span>▶</span> <span class="btn-label">Play</span>');
+          btnPlayPause.setInnerHtml('<span>▶</span> <span class="btn-label">Play</span> <span class="shortcut-badge">K</span>');
           showCenterFeedback('⏸');
         }
       }
@@ -643,37 +810,40 @@ Widget buildWebYouTubePlayer({
         isMuted = !isMuted;
         if (isMuted) {
           sendVideoCommand('mute');
-          btnMute.setInnerHtml('<span>🔇</span> <span class="btn-label">Unmute</span>');
+          showCenterFeedback('🔇');
         } else {
           sendVideoCommand('unMute');
-          sendVideoCommand('setVolume', [100]);
-          btnMute.setInnerHtml('<span>🔊</span> <span class="btn-label">Mute</span>');
+          if (currentVolume == 0) currentVolume = 50;
+          volumeSlider.value = currentVolume.toString();
+          sendVideoCommand('setVolume', [currentVolume]);
+          showCenterFeedback(currentVolume < 50 ? '🔉' : '🔊');
         }
+        updateVolumeDisplay();
       }
 
-      // --- AUTO-HIDE & ADVANCED EDGE DETECTION CONTROLS ---
+      volumeSlider.onInput.listen((_) {
+        final val = int.tryParse(volumeSlider.value ?? '100') ?? 100;
+        setVolume(val, false);
+      });
+
+      volumeGroup.onWheel.listen((e) {
+        e.preventDefault();
+        e.stopPropagation();
+        final delta = (e.deltaY < 0) ? 5 : -5;
+        setVolume(currentVolume + delta);
+        showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+      });
+
+      // --- SMOOTH AUTO-HIDE CONTROLS (WITHOUT BUGGY EDGE THRESHOLD) ---
       Timer? hideTimer;
       void hideControls() {
         overlay.classes.remove('show-controls');
-        interceptor.style.cursor = 'none'; // Hides cursor in theater mode
+        interceptor.style.cursor = 'none'; // Hides cursor in cinema/theater mode
       }
 
       void showControls(html.Event e) {
-        // Edge detection: Instant hide if mouse is placed on corners/edges
-        if (e is html.MouseEvent) {
-          const threshold = 35;
-          final rect = wrapper.getBoundingClientRect();
-          final x = e.client.x - rect.left;
-          final y = e.client.y - rect.top;
-          if (x <= threshold || x >= rect.width - threshold || y <= threshold || y >= rect.height - threshold) {
-            hideControls();
-            hideTimer?.cancel();
-            return;
-          }
-        }
-
         overlay.classes.add('show-controls');
-        interceptor.style.cursor = 'default'; // Standard clean arrow pointer over video stage
+        interceptor.style.cursor = 'default';
 
         hideTimer?.cancel();
         hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
@@ -682,17 +852,53 @@ Widget buildWebYouTubePlayer({
       interceptor.onMouseMove.listen(showControls);
       interceptor.onTouchStart.listen(showControls);
 
-      // 🛡️ CRITICAL FIX: Clicking video stage ONLY reveals/toggles controls.
-      // It NEVER stops or pauses a running live lecture!
+      // 🛡️ DOCKING SHIELD: Never auto-hide while hovering over controls bars
+      topBar.onMouseEnter.listen((_) {
+        hideTimer?.cancel();
+        overlay.classes.add('show-controls');
+        interceptor.style.cursor = 'default';
+      });
+      bottomBar.onMouseEnter.listen((_) {
+        hideTimer?.cancel();
+        overlay.classes.add('show-controls');
+        interceptor.style.cursor = 'default';
+      });
+      topBar.onMouseLeave.listen((_) {
+        hideTimer?.cancel();
+        hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
+      });
+      bottomBar.onMouseLeave.listen((_) {
+        hideTimer?.cancel();
+        hideTimer = Timer(const Duration(milliseconds: 3500), hideControls);
+      });
+
+      // 🖱️ SMART SINGLE & DOUBLE CLICK HANDLER
+      int lastClickTime = 0;
+      Timer? singleClickTimer;
+
       interceptor.onClick.listen((e) {
         e.preventDefault();
         e.stopPropagation();
-        if (overlay.classes.contains('show-controls')) {
-          hideControls();
-          hideTimer?.cancel();
-        } else {
-          showControls(e);
+
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (now - lastClickTime < 280) {
+          // Double-click -> Toggle fullscreen!
+          singleClickTimer?.cancel();
+          lastClickTime = 0;
+          btnFS.click();
+          return;
         }
+        lastClickTime = now;
+
+        singleClickTimer?.cancel();
+        singleClickTimer = Timer(const Duration(milliseconds: 280), () {
+          if (overlay.classes.contains('show-controls')) {
+            hideControls();
+            hideTimer?.cancel();
+          } else {
+            showControls(e);
+          }
+        });
       });
 
       wrapper.onMouseLeave.listen((_) {
@@ -708,6 +914,48 @@ Widget buildWebYouTubePlayer({
       btnMute.onClick.listen((e) {
         e.stopPropagation();
         toggleMute();
+      });
+
+      // ⌨️ DIRECT PC/LAPTOP KEYBOARD SHORTCUTS
+      html.window.onKeyDown.listen((e) {
+        if (wrapper.isConnected != true) return;
+
+        // Skip when typing in an input, textarea or contenteditable element
+        final active = html.document.activeElement;
+        if (active != null) {
+          final tag = active.tagName.toLowerCase();
+          if (tag == 'input' || tag == 'textarea' || active.isContentEditable == true) {
+            return;
+          }
+        }
+
+        final key = e.key?.toLowerCase() ?? '';
+        final code = e.code?.toLowerCase() ?? '';
+
+        if (code == 'space' || key == 'k') {
+          e.preventDefault();
+          togglePlay();
+        } else if (key == 'f') {
+          e.preventDefault();
+          btnFS.click();
+        } else if (key == 'm') {
+          e.preventDefault();
+          toggleMute();
+        } else if (key == 'c') {
+          e.preventDefault();
+          btnChat.click();
+        } else if (key == 'd') {
+          e.preventDefault();
+          btnDoubts.click();
+        } else if (code == 'arrowup') {
+          e.preventDefault();
+          setVolume(currentVolume + 5);
+          showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+        } else if (code == 'arrowdown') {
+          e.preventDefault();
+          setVolume(currentVolume - 5);
+          showCenterFeedback(currentVolume == 0 ? '🔇' : (currentVolume < 50 ? '🔉' : '🔊'));
+        }
       });
 
       // 🛡️ LIVE CLASS AUTO-RESUMPTION WATCHDOG & STATE SYNC:
@@ -758,12 +1006,12 @@ Widget buildWebYouTubePlayer({
       void updateFsButton() {
         final isFs = html.document.fullscreenElement != null;
         if (isFs) {
-          btnFS.setInnerHtml('<span>🗗</span> <span class="btn-label">Exit Fullscreen</span>');
-          btnFS.title = 'Exit Fullscreen (Esc)';
-          btnBack.setInnerHtml('<span>🗗</span> <span class="btn-label">Exit Fullscreen</span>');
+          btnFS.setInnerHtml('<span>🗗</span> <span class="btn-label">Exit Fullscreen</span> <span class="shortcut-badge">Esc</span>');
+          btnFS.title = 'Exit Fullscreen (Esc / F)';
+          btnBack.setInnerHtml('<span>🗗</span> <span class="btn-label">Exit Fullscreen</span> <span class="shortcut-badge">Esc</span>');
         } else {
-          btnFS.setInnerHtml('<span>⛶</span> <span class="btn-label">Fullscreen</span>');
-          btnFS.title = 'Fullscreen (F)';
+          btnFS.setInnerHtml('<span>⛶</span> <span class="btn-label">Fullscreen</span> <span class="shortcut-badge">F</span>');
+          btnFS.title = 'Fullscreen (F) • Double-click video';
           btnBack.setInnerHtml('<span>⬅</span> <span class="btn-label">Back</span>');
         }
       }

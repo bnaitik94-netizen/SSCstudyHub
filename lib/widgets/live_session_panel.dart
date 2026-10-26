@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -158,6 +159,9 @@ class _LiveChatWidgetState extends State<_LiveChatWidget>
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
+      }
+      if (kIsWeb) {
+        _chatFocusNode.requestFocus();
       }
     } catch (e) {
       debugPrint("Live chat send error: $e");

@@ -152,7 +152,11 @@ class _LiveClassRoomState extends State<LiveClassRoom>
             WebFullscreenHelper.exitFullscreen();
           }
           _registerAttendance(false);
-          Navigator.pop(context);
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
       });
       _playerSyncSub = WebFullscreenHelper.listenPlayerSync(() {
@@ -1009,25 +1013,61 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             color: Colors.black26,
             child: Row(
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      _buildSidePanelTab('chat', Icons.chat_rounded, "Live Chat"),
-                      const SizedBox(width: 6),
-                      _buildSidePanelTab('doubts', Icons.psychology_rounded, "AI Doubts"),
-                    ],
-                  ),
+                _buildSidePanelTab('chat', Icons.chat_rounded, "Live Chat", "C"),
+                const SizedBox(width: 6),
+                _buildSidePanelTab('doubts', Icons.psychology_rounded, "AI Doubts", "D"),
+                const Spacer(),
+                // Real-time Classmates Live Viewers Pill
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('live_session')
+                      .doc('current')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    int count = 1;
+                    if (snapshot.hasData && snapshot.data!.exists) {
+                      final data = snapshot.data!.data() as Map<String, dynamic>?;
+                      final viewers = data?['active_viewers'] as List?;
+                      if (viewers != null && viewers.isNotEmpty) {
+                        count = viewers.length;
+                      }
+                    }
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4), width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.circle, size: 6, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          Text(
+                            "$count live",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
+                const SizedBox(width: 6),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20, color: Colors.white70),
+                  icon: const Icon(Icons.close_rounded, size: 19, color: Colors.white70),
                   onPressed: () => setState(() => _isSidePanelOpen = false),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: "Close Panel",
+                  tooltip: "Collapse Panel (C / D)",
                 ),
               ],
             ),
@@ -1042,7 +1082,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
     );
   }
 
-  Widget _buildSidePanelTab(String tab, IconData icon, String label) {
+  Widget _buildSidePanelTab(String tab, IconData icon, String label, [String? shortcut]) {
     final bool isSelected = _activeTab == tab;
     return InkWell(
       onTap: () {
@@ -1052,7 +1092,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.accent.withValues(alpha: 0.18) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -1066,18 +1106,37 @@ class _LiveClassRoomState extends State<LiveClassRoom>
           children: [
             Icon(
               icon,
-              size: 14,
+              size: 13,
               color: isSelected ? AppColors.accent : Colors.white60,
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 color: isSelected ? Colors.white : Colors.white70,
               ),
             ),
+            if (shortcut != null) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  shortcut,
+                  style: TextStyle(
+                    fontSize: 8.5,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white70 : Colors.white38,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1201,6 +1260,66 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                             offstage: !_isSidePanelOpen,
                             child: _buildLandscapeSidePanel(width: sidePanelWidth),
                           ),
+                        ),
+
+                      // 💻 PC/DESKTOP QUICK SIDEBAR RESTORE DOCK TAB
+                      if (isLandscape && useSideBySide && !_isSidePanelOpen)
+                        Positioned(
+                          top: 18,
+                          right: 18,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => setState(() => _isSidePanelOpen = true),
+                              borderRadius: BorderRadius.circular(24),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.88),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: AppColors.accent.withValues(alpha: 0.45),
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                      blurRadius: 14,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.chat_bubble_rounded,
+                                      color: AppColors.accent,
+                                      size: 15,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "Live Chat",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12.5,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.greenAccent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ).animate().fadeIn(duration: 250.ms),
                         ),
 
                       // 💻 LANDSCAPE FLOATING DRAWER PANEL: Overlay on compact screens (<900px) so video is NEVER crushed or cut!
