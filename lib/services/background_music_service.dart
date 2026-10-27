@@ -73,7 +73,7 @@ class BackgroundMusicService extends ChangeNotifier {
       if (_currentIndex < 0 || _currentIndex >= availableTracks.length) {
         _currentIndex = 0;
       }
-      _userExplicitlyPaused = prefs.getBool('bg_music_user_paused') ?? false;
+      _userExplicitlyPaused = prefs.getBool('bg_music_user_paused') ?? true;
 
       await _player.setReleaseMode(ReleaseMode.loop);
       await _player.setVolume(_isMuted ? 0.0 : _volume);
@@ -85,16 +85,6 @@ class BackgroundMusicService extends ChangeNotifier {
           notifyListeners();
         }
       });
-
-      // If user had music active, start it up seamlessly
-      if (!_userExplicitlyPaused) {
-        // Delayed slightly to allow Flutter app render pass to stabilize
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (!_pausedForClass && !_pausedForMinimize && !_userExplicitlyPaused) {
-            play(currentTrackIndex);
-          }
-        });
-      }
     } catch (e) {
       debugPrint('[BackgroundMusicService] Init error: $e');
     }
