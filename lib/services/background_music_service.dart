@@ -24,7 +24,28 @@ class BackgroundMusicService extends ChangeNotifier {
 
   BackgroundMusicService._internal();
 
-  final AudioPlayer _player = AudioPlayer();
+  AudioPlayer? _player;
+
+  AudioPlayer get player {
+    if (_player == null) {
+      final p = AudioPlayer();
+      _player = p;
+      try {
+        p.setReleaseMode(ReleaseMode.loop).catchError((_) {});
+        p.setVolume(_isMuted ? 0.0 : _volume).catchError((_) {});
+        p.onPlayerStateChanged.listen((state) {
+          final playing = state == PlayerState.playing;
+          if (_isPlaying != playing) {
+            _isPlaying = playing;
+            notifyListeners();
+          }
+        });
+      } catch (e) {
+        debugPrint('[BackgroundMusicService] AudioPlayer listener setup error: $e');
+      }
+    }
+    return _player!;
+  }
 
   static const List<BackgroundMusicTrack> availableTracks = [
     BackgroundMusicTrack(
@@ -74,17 +95,7 @@ class BackgroundMusicService extends ChangeNotifier {
         _currentIndex = 0;
       }
       _userExplicitlyPaused = prefs.getBool('bg_music_user_paused') ?? true;
-
-      await _player.setReleaseMode(ReleaseMode.loop);
-      await _player.setVolume(_isMuted ? 0.0 : _volume);
-
-      _player.onPlayerStateChanged.listen((state) {
-        final playing = state == PlayerState.playing;
-        if (_isPlaying != playing) {
-          _isPlaying = playing;
-          notifyListeners();
-        }
-      });
+      // AudioPlayer is intentionally not created here to guarantee zero startup overhead.
     } catch (e) {
       debugPrint('[BackgroundMusicService] Init error: $e');
     }
@@ -94,17 +105,21 @@ class BackgroundMusicService extends ChangeNotifier {
     try {
       if (trackIndex != null && trackIndex != _currentIndex) {
         _currentIndex = trackIndex % availableTracks.length;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('bg_music_track_index', _currentIndex);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('bg_music_track_index', _currentIndex);
+        } catch (_) {}
       }
 
       _userExplicitlyPaused = false;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('bg_music_user_paused', false);
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('bg_music_user_paused', false);
+      } catch (_) {}
 
       final track = availableTracks[_currentIndex];
-      await _player.setVolume(_isMuted ? 0.0 : _volume);
-      await _player.play(AssetSource(track.assetName));
+      await player.setVolume(_isMuted ? 0.0 : _volume);
+      await player.play(AssetSource(track.assetName));
       _isPlaying = true;
       notifyListeners();
     } catch (e) {
@@ -114,7 +129,9 @@ class BackgroundMusicService extends ChangeNotifier {
 
   Future<void> pause() async {
     try {
-      await _player.pause();
+      if (_player != null) {
+        await _player!.pause();
+      }
       _isPlaying = false;
       notifyListeners();
     } catch (e) {
@@ -125,8 +142,10 @@ class BackgroundMusicService extends ChangeNotifier {
   Future<void> userTogglePlayPause() async {
     if (_isPlaying) {
       _userExplicitlyPaused = true;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('bg_music_user_paused', true);
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('bg_music_user_paused', true);
+      } catch (_) {}
       await pause();
     } else {
       _userExplicitlyPaused = false;
@@ -149,15 +168,27 @@ class BackgroundMusicService extends ChangeNotifier {
     if (_isMuted && _volume > 0.0) {
       _isMuted = false;
     }
-    await _player.setVolume(_isMuted ? 0.0 : _volume);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('bg_music_volume', _volume);
+    try {
+      if (_player != null) {
+        await _player!.setVolume(_isMuted ? 0.0 : _volume);
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('bg_music_volume', _volume);
+    } catch (e) {
+      debugPrint('[BackgroundMusicService] SetVolume error: $e');
+    }
     notifyListeners();
   }
 
   Future<void> toggleMute() async {
     _isMuted = !_isMuted;
-    await _player.setVolume(_isMuted ? 0.0 : _volume);
+    try {
+      if (_player != null) {
+        await _player!.setVolume(_isMuted ? 0.0 : _volume);
+      }
+    } catch (e) {
+      debugPrint('[BackgroundMusicService] ToggleMute error: $e');
+    }
     notifyListeners();
   }
 
@@ -206,7 +237,9 @@ class BackgroundMusicService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _player.dispose();
+    try {
+      _player?.dispose();
+    } catch (_) {}
     super.dispose();
   }
 }

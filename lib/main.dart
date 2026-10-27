@@ -128,14 +128,18 @@ class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 🎵 Auto pause background music when app is minimized / backgrounded
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
-      BackgroundMusicService.instance.onAppMinimized();
-    } else if (state == AppLifecycleState.resumed) {
-      // 🎵 Auto resume background music when coming back to foreground
-      BackgroundMusicService.instance.onAppResumed();
+    try {
+      // 🎵 Auto pause background music when app is minimized / backgrounded
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.hidden) {
+        BackgroundMusicService.instance.onAppMinimized();
+      } else if (state == AppLifecycleState.resumed) {
+        // 🎵 Auto resume background music when coming back to foreground
+        BackgroundMusicService.instance.onAppResumed();
+      }
+    } catch (e) {
+      debugPrint('[Lifecycle] Error handling state $state: $e');
     }
   }
 
