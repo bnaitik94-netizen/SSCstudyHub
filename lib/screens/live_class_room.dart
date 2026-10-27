@@ -1049,47 +1049,6 @@ class _LiveClassRoomState extends State<LiveClassRoom>
                 const SizedBox(width: 6),
                 _buildSidePanelTab('doubts', Icons.psychology_rounded, "AI Doubts", "D"),
                 const Spacer(),
-                // Real-time Classmates Live Viewers Pill
-                StreamBuilder<DocumentSnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('live_session')
-                      .doc('current')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    int count = 1;
-                    if (snapshot.hasData && snapshot.data!.exists) {
-                      final data = snapshot.data!.data() as Map<String, dynamic>?;
-                      final viewers = data?['active_viewers'] as List?;
-                      if (viewers != null && viewers.isNotEmpty) {
-                        count = viewers.length;
-                      }
-                    }
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4), width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.circle, size: 6, color: Colors.redAccent),
-                          const SizedBox(width: 4),
-                          Text(
-                            "$count live",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 6),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 19, color: Colors.white70),
                   onPressed: () => setState(() => _isSidePanelOpen = false),
