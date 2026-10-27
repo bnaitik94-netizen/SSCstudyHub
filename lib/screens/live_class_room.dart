@@ -16,6 +16,7 @@ import '../widgets/doubts_panel.dart';
 import '../widgets/floating_reactions.dart';
 import '../utils/web_fullscreen_helper.dart';
 import '../utils/web_navigation_helper.dart';
+import '../services/background_music_service.dart';
 
 class LiveClassRoom extends StatefulWidget {
   final String userName;
@@ -117,6 +118,9 @@ class _LiveClassRoomState extends State<LiveClassRoom>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // 🎵 Auto-pause background music during live class
+    BackgroundMusicService.instance.pauseForClass();
 
     // Sanitize video ID from any YouTube URL format (youtu.be, shorts, /watch?v=)
     _videoId = YoutubePlayer.convertUrlToId(widget.videoId) ?? widget.videoId;
@@ -249,6 +253,9 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
   @override
   void dispose() {
+    // 🎵 Auto-resume background music when exiting live class
+    BackgroundMusicService.instance.resumeAfterClass();
+
     try {
       WakelockPlus.disable();
     } catch (_) {}

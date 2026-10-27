@@ -10,6 +10,7 @@ import 'screens/splash_screen.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart'; 
 import 'services/notification_service.dart';
+import 'services/background_music_service.dart';
 import 'utils/url_strategy_helper.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -46,6 +47,9 @@ void main() async {
   } catch (e) {
     debugPrint("Firebase init error: $e");
   }
+
+  // 🎵 Initialize Background Music Service
+  unawaited(BackgroundMusicService.instance.initialize());
 
   if (!kIsWeb) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -102,8 +106,38 @@ void main() async {
   runApp(const SSCStudyHubApp());
 }
 
-class SSCStudyHubApp extends StatelessWidget {
+class SSCStudyHubApp extends StatefulWidget {
   const SSCStudyHubApp({super.key});
+
+  @override
+  State<SSCStudyHubApp> createState() => _SSCStudyHubAppState();
+}
+
+class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 🎵 Auto pause background music when app is minimized / backgrounded
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      BackgroundMusicService.instance.onAppMinimized();
+    } else if (state == AppLifecycleState.resumed) {
+      // 🎵 Auto resume background music when coming back to foreground
+      BackgroundMusicService.instance.onAppResumed();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,8 +154,6 @@ class SSCStudyHubApp extends StatelessWidget {
           behavior: const _PremiumScrollBehavior(),
           child: _PremiumStudyBackground(child: child ?? const SizedBox.shrink()),
         );
-
-
 
         return MediaQuery(
           data: mediaQueryData.copyWith(textScaler: constrainedTextScale),

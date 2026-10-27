@@ -34,6 +34,7 @@ import '../widgets/doubts_panel.dart';
 import '../widgets/web_player_loader.dart';
 import '../utils/web_fullscreen_helper.dart';
 import '../utils/web_navigation_helper.dart';
+import '../services/background_music_service.dart';
 
 /// Platform-aware pointer interceptor:
 /// Only activates on Web to stop iframe click stealing.
@@ -302,6 +303,9 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // 🎵 Auto-pause background music during class
+    BackgroundMusicService.instance.pauseForClass();
+
     try {
       WakelockPlus.enable();
     } catch (_) {}
@@ -376,6 +380,9 @@ class _PastClassPlayerScreenState extends State<PastClassPlayerScreen>
 
   @override
   void dispose() {
+    // 🎵 Auto-resume background music when exiting class
+    BackgroundMusicService.instance.resumeAfterClass();
+
     WidgetsBinding.instance.removeObserver(this);
 
     try {

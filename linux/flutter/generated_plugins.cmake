@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_linux
   gtk
   syncfusion_pdfviewer_linux
   url_launcher_linux

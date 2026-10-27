@@ -13,6 +13,7 @@ import '../services/notification_service.dart';
 import '../utils/web_navigation_helper.dart';
 import '../widgets/desktop_navigation.dart';
 import '../widgets/doubts_panel.dart';
+import '../widgets/music_mini_player.dart';
 
 class MainDashboard extends StatefulWidget {
   final String studentName;
@@ -575,6 +576,13 @@ class _MainDashboardState extends State<MainDashboard> {
                       ),
                     ),
                   ),
+                // 🎵 Floating Background Music Mini Player for Mobile
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 84 + MediaQuery.of(context).padding.bottom,
+                  child: const MusicMiniPlayer(compact: false),
+                ),
               ],
             ),
             bottomNavigationBar: RepaintBoundary(

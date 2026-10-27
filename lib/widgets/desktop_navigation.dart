@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
+import 'music_mini_player.dart';
 
 class DesktopSidebar extends StatelessWidget {
   final int currentIndex;
@@ -871,6 +872,10 @@ class DesktopTopBar extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 10),
+
+          // 🎵 Background Music Player Pill
+          const MusicMiniPlayer(compact: true),
           const SizedBox(width: 10),
 
           // Notification Bell
