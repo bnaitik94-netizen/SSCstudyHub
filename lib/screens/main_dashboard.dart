@@ -10,10 +10,10 @@ import '../tabs/profile_tab.dart';
 import '../utils/app_colors.dart';
 import '../screens/live_class_room.dart';
 import '../services/notification_service.dart';
+import '../services/background_music_service.dart';
 import '../utils/web_navigation_helper.dart';
 import '../widgets/desktop_navigation.dart';
 import '../widgets/doubts_panel.dart';
-import '../widgets/music_mini_player.dart';
 
 class MainDashboard extends StatefulWidget {
   final String studentName;
@@ -72,6 +72,8 @@ class _MainDashboardState extends State<MainDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService().checkAndPromptPermission(context);
       NotificationService().syncTokenAndTopics();
+      // 🎵 Automatically start background anthem seamlessly
+      BackgroundMusicService.instance.startAutoMusic();
     });
   }
 
@@ -576,13 +578,6 @@ class _MainDashboardState extends State<MainDashboard> {
                       ),
                     ),
                   ),
-                // 🎵 Floating Background Music Mini Player for Mobile
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 84 + MediaQuery.of(context).padding.bottom,
-                  child: const MusicMiniPlayer(compact: false),
-                ),
               ],
             ),
             bottomNavigationBar: RepaintBoundary(

@@ -48,8 +48,8 @@ void main() async {
     debugPrint("Firebase init error: $e");
   }
 
-  // 🎵 Initialize Background Music Service
-  unawaited(BackgroundMusicService.instance.initialize());
+  // 🎵 Start Invisible Background Music Service
+  unawaited(BackgroundMusicService.instance.startAutoMusic());
 
   if (!kIsWeb) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -161,7 +161,13 @@ class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObse
 
         return MediaQuery(
           data: mediaQueryData.copyWith(textScaler: constrainedTextScale),
-          child: ConnectivityWrapper(child: body),
+          child: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) {
+              BackgroundMusicService.instance.onUserInteraction();
+            },
+            child: ConnectivityWrapper(child: body),
+          ),
         );
       },
       theme: ThemeData(

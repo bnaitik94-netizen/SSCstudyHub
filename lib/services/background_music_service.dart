@@ -1,30 +1,31 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:audioplayers/audioplayers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class BackgroundMusicTrack {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String assetName;
-  final IconData icon;
-
-  const BackgroundMusicTrack({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.assetName,
-    required this.icon,
-  });
-}
-
-class BackgroundMusicService extends ChangeNotifier {
+/// 🎵 ZERO-OVERHEAD INVISIBLE BACKGROUND MUSIC SERVICE
+/// Automatically starts anthem on app launch, loops continuously,
+/// auto-pauses when student enters live or past class,
+/// auto-resumes when student exits class,
+/// auto-pauses when app is minimized / backgrounded,
+/// and has ZERO UI buttons, zero ticking animations, and zero main-thread overhead.
+class BackgroundMusicService {
   static final BackgroundMusicService instance = BackgroundMusicService._internal();
 
   BackgroundMusicService._internal();
 
   AudioPlayer? _player;
+
+  // Track & playback properties
+  static const String anthemAsset = 'audio/tu_hi_khiladi.mp3';
+  static const double backgroundVolume = 0.45; // Balanced, comfortable study volume
+
+  bool _isPlaying = false;
+  bool _pausedForClass = false;
+  bool _pausedForMinimize = false;
+  bool _interactionHandled = false;
+
+  bool get isPlaying => _isPlaying;
+  bool get pausedForClass => _pausedForClass;
 
   AudioPlayer get player {
     if (_player == null) {
@@ -32,214 +33,93 @@ class BackgroundMusicService extends ChangeNotifier {
       _player = p;
       try {
         p.setReleaseMode(ReleaseMode.loop).catchError((_) {});
-        p.setVolume(_isMuted ? 0.0 : _volume).catchError((_) {});
+        p.setVolume(backgroundVolume).catchError((_) {});
         p.onPlayerStateChanged.listen((state) {
-          final playing = state == PlayerState.playing;
-          if (_isPlaying != playing) {
-            _isPlaying = playing;
-            notifyListeners();
-          }
+          _isPlaying = (state == PlayerState.playing);
         });
       } catch (e) {
-        debugPrint('[BackgroundMusicService] AudioPlayer listener setup error: $e');
+        debugPrint('[BackgroundMusicService] AudioPlayer listener error: $e');
       }
     }
     return _player!;
   }
 
-  static const List<BackgroundMusicTrack> availableTracks = [
-    BackgroundMusicTrack(
-      id: 'tu_hi_khiladi',
-      title: 'Tu Hi Khiladi',
-      subtitle: 'SSC Champion Anthem',
-      assetName: 'audio/tu_hi_khiladi.mp3',
-      icon: Icons.sports_score_rounded,
-    ),
-    BackgroundMusicTrack(
-      id: 'deep_focus_study',
-      title: 'Deep Focus Study',
-      subtitle: 'Calm Ambient Lo-Fi',
-      assetName: 'audio/deep_focus_study.mp3',
-      icon: Icons.spa_rounded,
-    ),
-  ];
-
-  int _currentIndex = 0;
-  bool _isPlaying = false;
-  bool _isMuted = false;
-  double _volume = 0.65;
-  bool _isInitialized = false;
-
-  // Interruption flags
-  bool _pausedForClass = false;
-  bool _pausedForMinimize = false;
-  bool _userExplicitlyPaused = false;
-
-  int get currentTrackIndex => _currentIndex;
-  BackgroundMusicTrack get currentTrack => availableTracks[_currentIndex];
-  bool get isPlaying => _isPlaying;
-  bool get isMuted => _isMuted;
-  double get volume => _volume;
-  bool get isInitialized => _isInitialized;
-  bool get pausedForClass => _pausedForClass;
-
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    _isInitialized = true;
-
+  /// Automatically start music when app loads
+  Future<void> startAutoMusic() async {
+    if (_isPlaying || _pausedForClass || _pausedForMinimize) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _volume = prefs.getDouble('bg_music_volume') ?? 0.65;
-      _currentIndex = prefs.getInt('bg_music_track_index') ?? 0;
-      if (_currentIndex < 0 || _currentIndex >= availableTracks.length) {
-        _currentIndex = 0;
-      }
-      _userExplicitlyPaused = prefs.getBool('bg_music_user_paused') ?? true;
-      // AudioPlayer is intentionally not created here to guarantee zero startup overhead.
-    } catch (e) {
-      debugPrint('[BackgroundMusicService] Init error: $e');
-    }
-  }
-
-  Future<void> play([int? trackIndex]) async {
-    try {
-      if (trackIndex != null && trackIndex != _currentIndex) {
-        _currentIndex = trackIndex % availableTracks.length;
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt('bg_music_track_index', _currentIndex);
-        } catch (_) {}
-      }
-
-      _userExplicitlyPaused = false;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('bg_music_user_paused', false);
-      } catch (_) {}
-
-      final track = availableTracks[_currentIndex];
-      await player.setVolume(_isMuted ? 0.0 : _volume);
-      await player.play(AssetSource(track.assetName));
+      await player.setVolume(backgroundVolume);
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.play(AssetSource(anthemAsset));
       _isPlaying = true;
-      notifyListeners();
+      _interactionHandled = true;
     } catch (e) {
-      debugPrint('[BackgroundMusicService] Play error: $e');
+      // Browser autoplay policy might require first user gesture on web
+      debugPrint('[BackgroundMusicService] Initial autoplay notice (waiting for first touch if on web): $e');
     }
   }
 
-  Future<void> pause() async {
-    try {
-      if (_player != null) {
-        await _player!.pause();
-      }
-      _isPlaying = false;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('[BackgroundMusicService] Pause error: $e');
+  /// Called on first user touch/click anywhere on screen to unlock audio if browser autoplay was blocked
+  void onUserInteraction() {
+    if (_interactionHandled && _isPlaying) return;
+    if (_pausedForClass || _pausedForMinimize) return;
+
+    _interactionHandled = true;
+    if (!_isPlaying) {
+      startAutoMusic();
     }
   }
 
-  Future<void> userTogglePlayPause() async {
-    if (_isPlaying) {
-      _userExplicitlyPaused = true;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('bg_music_user_paused', true);
-      } catch (_) {}
-      await pause();
-    } else {
-      _userExplicitlyPaused = false;
-      await play();
-    }
-  }
-
-  Future<void> nextTrack() async {
-    final next = (_currentIndex + 1) % availableTracks.length;
-    await play(next);
-  }
-
-  Future<void> previousTrack() async {
-    final prev = (_currentIndex - 1 + availableTracks.length) % availableTracks.length;
-    await play(prev);
-  }
-
-  Future<void> setVolume(double newVolume) async {
-    _volume = newVolume.clamp(0.0, 1.0);
-    if (_isMuted && _volume > 0.0) {
-      _isMuted = false;
-    }
-    try {
-      if (_player != null) {
-        await _player!.setVolume(_isMuted ? 0.0 : _volume);
-      }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('bg_music_volume', _volume);
-    } catch (e) {
-      debugPrint('[BackgroundMusicService] SetVolume error: $e');
-    }
-    notifyListeners();
-  }
-
-  Future<void> toggleMute() async {
-    _isMuted = !_isMuted;
-    try {
-      if (_player != null) {
-        await _player!.setVolume(_isMuted ? 0.0 : _volume);
-      }
-    } catch (e) {
-      debugPrint('[BackgroundMusicService] ToggleMute error: $e');
-    }
-    notifyListeners();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Classroom Intelligent Pausing & Resuming
-  // ---------------------------------------------------------------------------
+  /// ⏸️ Auto-pause when student enters live or past class
   Future<void> pauseForClass() async {
-    debugPrint('[BackgroundMusicService] Pausing background music for class.');
-    if (_isPlaying) {
-      _pausedForClass = true;
-      await pause();
+    debugPrint('[BackgroundMusicService] Entering class -> Auto-pausing background music.');
+    _pausedForClass = true;
+    if (_isPlaying && _player != null) {
+      try {
+        await _player!.pause();
+        _isPlaying = false;
+      } catch (e) {
+        debugPrint('[BackgroundMusicService] Pause error: $e');
+      }
     }
   }
 
+  /// ▶️ Auto-resume when student exits class back to dashboard
   Future<void> resumeAfterClass() async {
-    debugPrint('[BackgroundMusicService] Resuming background music after class.');
-    if (_pausedForClass) {
-      _pausedForClass = false;
-      if (!_userExplicitlyPaused && !_pausedForMinimize) {
-        await play();
-      }
+    debugPrint('[BackgroundMusicService] Exiting class -> Auto-resuming background music.');
+    _pausedForClass = false;
+    if (!_pausedForMinimize) {
+      await startAutoMusic();
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // App Lifecycle Minimize / Resumed
-  // ---------------------------------------------------------------------------
+  /// ⏸️ Auto-pause when app is minimized / backgrounded / tab hidden
   Future<void> onAppMinimized() async {
-    if (_isPlaying) {
-      debugPrint('[BackgroundMusicService] App minimized, pausing background music.');
-      _pausedForMinimize = true;
-      await pause();
-    }
-  }
-
-  Future<void> onAppResumed() async {
-    if (_pausedForMinimize) {
-      debugPrint('[BackgroundMusicService] App resumed to foreground.');
-      _pausedForMinimize = false;
-      // Do not resume if user is currently inside a live or past class
-      if (!_pausedForClass && !_userExplicitlyPaused) {
-        await play();
+    debugPrint('[BackgroundMusicService] App minimized -> Pausing background music.');
+    _pausedForMinimize = true;
+    if (_isPlaying && _player != null) {
+      try {
+        await _player!.pause();
+        _isPlaying = false;
+      } catch (e) {
+        debugPrint('[BackgroundMusicService] App minimized pause error: $e');
       }
     }
   }
 
-  @override
+  /// ▶️ Auto-resume when coming back to foreground
+  Future<void> onAppResumed() async {
+    debugPrint('[BackgroundMusicService] App resumed -> Resuming background music.');
+    _pausedForMinimize = false;
+    // Only resume if student is not currently inside a class
+    if (!_pausedForClass) {
+      await startAutoMusic();
+    }
+  }
+
   void dispose() {
     try {
       _player?.dispose();
     } catch (_) {}
-    super.dispose();
   }
 }
