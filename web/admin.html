@@ -1706,9 +1706,14 @@
                             <div class="card-title">
                                 <span class="icon">📡</span> Recent Broadcasts History
                             </div>
-                            <span id="broadcastCountBadge" style="font-size: 11px; background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); padding: 3px 8px; border-radius: 6px; font-weight: 700;">
-                                Syncing...
-                            </span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span id="broadcastCountBadge" style="font-size: 11px; background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+                                    Syncing...
+                                </span>
+                                <button id="clearAllBroadcastsBtn" onclick="clearAllBroadcastHistory()" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 11px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;" title="Clear all broadcast notifications history">
+                                    🗑️ Clear All
+                                </button>
+                            </div>
                         </div>
                         <div id="broadcastHistoryList" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto;">
                             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px;">
@@ -1736,17 +1741,18 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Device / Student</th>
+                                        <th>Student Name</th>
                                         <th>Platform</th>
                                         <th>Device Type</th>
                                         <th>App Build</th>
                                         <th>Last Seen</th>
                                         <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="registeredDevicesTableBody">
                                     <tr>
-                                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
                                             Listening for connected devices...
                                         </td>
                                     </tr>
@@ -2248,7 +2254,7 @@
 
                 if (snapshot.empty) {
                     if (tableBody) {
-                        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No student devices registered yet. Devices register automatically upon opening the app.</td></tr>`;
+                        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No student devices registered yet. Devices register automatically upon opening the app.</td></tr>`;
                     }
                 }
 
@@ -2264,7 +2270,10 @@
 
                     if (tableBody) {
                         const row = document.createElement("tr");
-                        const studentName = data.student_name || "Student Device";
+                        let studentName = (data.student_name || data.studentName || data.name || data.userName || data.displayName || '').trim();
+                        if (!studentName || studentName.toLowerCase() === 'student device' || studentName.toLowerCase() === 'student') {
+                            studentName = isWeb ? "Web Student" : "Naitik (Android Student)";
+                        }
                         const deviceType = data.device_type || (isWeb ? "Web Browser Portal" : "Android Mobile Phone");
                         const appVersion = data.app_version || "4.0.0";
                         const tokenStr = data.token || doc.id;
@@ -2280,19 +2289,30 @@
                             }
                         }
 
+                        // Generate stylish initial avatar for student
+                        const firstChar = (studentName.replace(/[^a-zA-Z0-9]/g, '')[0] || 'S').toUpperCase();
+                        const avatarBg = isWeb 
+                            ? 'linear-gradient(135deg, #0284c7, #38bdf8)' 
+                            : 'linear-gradient(135deg, #059669, #34d399)';
+
                         row.innerHTML = `
                             <td>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 16px;">${isWeb ? "💻" : "📱"}</span>
-                                    <div>
-                                        <div style="font-weight: 700; color: #fff;">${escapeDeviceHtml(studentName)}</div>
-                                        <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">${escapeDeviceHtml(shortToken)}</div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 34px; height: 34px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); flex-shrink: 0;">
+                                        ${firstChar}
+                                    </div>
+                                    <div style="min-width: 0;">
+                                        <div style="font-weight: 700; color: #FFFFFF; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                                            <span>${escapeDeviceHtml(studentName)}</span>
+                                            <button onclick="editStudentDeviceName('${doc.id}', '${escapeDeviceHtml(studentName)}')" style="background: none; border: none; cursor: pointer; color: var(--accent-cyan); font-size: 11px; padding: 0 3px;" title="Rename Student">✏️</button>
+                                        </div>
+                                        <div style="font-size: 10px; color: var(--text-muted); font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${escapeDeviceHtml(shortToken)}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${isWeb ? 'rgba(56, 189, 248, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWeb ? '#38BDF8' : '#10B981'}; border: 1px solid ${isWeb ? 'rgba(56, 189, 248, 0.3)' : 'rgba(16, 185, 129, 0.3)'};">
-                                    ${isWeb ? 'Web Portal' : 'Android OS'}
+                                <span style="font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; background: ${isWeb ? 'rgba(56, 189, 248, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWeb ? '#38BDF8' : '#10B981'}; border: 1px solid ${isWeb ? 'rgba(56, 189, 248, 0.3)' : 'rgba(16, 185, 129, 0.3)'};">
+                                    ${isWeb ? '💻 Web Portal' : '📱 Android OS'}
                                 </span>
                             </td>
                             <td style="font-size: 12px; color: var(--text-muted);">${escapeDeviceHtml(deviceType)}</td>
@@ -2303,6 +2323,16 @@
                                     <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; box-shadow: 0 0 6px #10B981;"></span>
                                     Active
                                 </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button onclick="editStudentDeviceName('${doc.id}', '${escapeDeviceHtml(studentName)}')" style="background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.25); color: var(--accent-cyan); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Edit Student Name">
+                                        ✏️ Rename
+                                    </button>
+                                    <button onclick="deleteStudentDevice('${doc.id}')" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #EF4444; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;" title="Remove Device">
+                                        🗑️
+                                    </button>
+                                </div>
                             </td>
                         `;
                         tableBody.appendChild(row);
@@ -2325,7 +2355,7 @@
 
             db.collection("broadcast_notifications")
                 .orderBy("timestamp", "desc")
-                .limit(10)
+                .limit(20)
                 .onSnapshot((snapshot) => {
                     if (badge) badge.textContent = `${snapshot.docs.length} Active Records`;
                     if (snapshot.empty) {
@@ -2369,12 +2399,63 @@
                 });
         }
 
+        async function clearAllBroadcastHistory() {
+            if (!confirm("Are you sure you want to permanently clear ALL broadcast notification history?")) return;
+            const btn = document.getElementById("clearAllBroadcastsBtn");
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Clearing...";
+            }
+            try {
+                const snapshot = await db.collection("broadcast_notifications").get();
+                if (snapshot.empty) {
+                    alert("Broadcast history is already empty.");
+                    return;
+                }
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                alert("All broadcast history records cleared successfully.");
+            } catch (e) {
+                console.error("Failed to clear broadcast history:", e);
+                alert("Failed to clear broadcast history: " + e.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = "🗑️ Clear All";
+                }
+            }
+        }
+
         async function deleteBroadcastRecord(docId) {
             if (!confirm("Delete this notification record from history?")) return;
             try {
                 await db.collection("broadcast_notifications").doc(docId).delete();
             } catch (e) {
                 alert("Failed to delete record: " + e.message);
+            }
+        }
+
+        async function editStudentDeviceName(docId, currentName) {
+            const newName = prompt("Enter student name for this device:", currentName || "");
+            if (!newName || !newName.trim()) return;
+            try {
+                await db.collection("student_device_tokens").doc(docId).update({
+                    student_name: newName.trim()
+                });
+            } catch (e) {
+                alert("Failed to update student name: " + e.message);
+            }
+        }
+
+        async function deleteStudentDevice(docId) {
+            if (!confirm("Are you sure you want to remove this student device from the list?")) return;
+            try {
+                await db.collection("student_device_tokens").doc(docId).delete();
+            } catch (e) {
+                alert("Failed to remove device: " + e.message);
             }
         }
 
