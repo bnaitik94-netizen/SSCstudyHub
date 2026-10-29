@@ -23,6 +23,13 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return "Good morning ☀️";
+    if (hour >= 12 && hour < 17) return "Good afternoon 🌤️";
+    if (hour >= 17 && hour < 21) return "Good evening 🌆";
+    return "Good evening 🌙";
+  }
   Future<void> _handleRefresh() async {
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) setState(() {});
@@ -85,14 +92,14 @@ class _HomeTabState extends State<HomeTab> {
                                 width: 1,
                               ),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.bolt_rounded, size: 13, color: AppColors.accent),
-                                SizedBox(width: 4),
+                                const Icon(Icons.bolt_rounded, size: 13, color: AppColors.accent),
+                                const SizedBox(width: 4),
                                 Text(
-                                  "SSC 10th BOARD",
-                                  style: TextStyle(
+                                  _getGreeting(),
+                                  style: const TextStyle(
                                     color: AppColors.accent,
                                     fontWeight: FontWeight.w800,
                                     fontSize: 10,
@@ -104,7 +111,7 @@ class _HomeTabState extends State<HomeTab> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Hello, ${widget.studentName.split(' ')[0]} 👋",
+                            "${widget.studentName.split(' ')[0]} 👋",
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
@@ -121,21 +128,17 @@ class _HomeTabState extends State<HomeTab> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
+                        color: AppColors.surfaceCard,
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [AppColors.primary, AppColors.accent],
-                        ),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.45),
+                          color: AppColors.surfaceCardBorder,
                           width: 1.5,
                         ),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.45),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
+                            color: Color(0x33000000),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
                           ),
                         ],
                       ),
@@ -146,7 +149,7 @@ class _HomeTabState extends State<HomeTab> {
                             : 'S',
                         style: const TextStyle(
                           fontSize: 20,
-                          color: Colors.white,
+                          color: AppColors.accent,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -680,48 +683,96 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // ── Clean card when no class is live ─────────────────────────────────────
+  // ── High-Tech Studio Standby Card when no class is live ───────────────────
   Widget _buildOfflineCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 20),
       decoration: AppColors.liquidGlassCard,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.10),
-              shape: BoxShape.circle,
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.20),
-                width: 1.2,
+                color: AppColors.accent.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
-            child: const Icon(
-              Icons.tv_off_rounded,
-              size: 32,
-              color: AppColors.accent,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.sensors_off_rounded, size: 12, color: AppColors.accent),
+                SizedBox(width: 5),
+                Text(
+                  "STUDIO STANDBY",
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 14),
           const Text(
-            "No Active Live Broadcast",
+            "Classroom Standby Mode",
             style: TextStyle(
-              fontSize: 15.5,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: Colors.white,
+              letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           const Text(
-            "Check scheduled upcoming lectures or solve academic doubts with AI.",
+            "No live stream broadcast active right now. Check scheduled timetable or ask your AI Tutor.",
             style: TextStyle(
-              color: Colors.white60,
+              color: AppColors.textSecondary,
               fontSize: 12.5,
-              height: 1.4,
+              height: 1.45,
             ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  widget.onNavigateTab?.call(2);
+                },
+                icon: const Icon(Icons.calendar_month_rounded, size: 14, color: AppColors.accent),
+                label: const Text(
+                  "View Schedule",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.surfaceCardBorder),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed: _openAiDoubtSolver,
+                icon: const Icon(Icons.auto_awesome_rounded, size: 14, color: Colors.white),
+                label: const Text(
+                  "AI Tutor",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -219,14 +219,12 @@ class _DeveloperInfoScreenState extends State<DeveloperInfoScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     "Passionate about building offline educational applications using Flutter & Python, and creating Hindi cybersecurity content. Dedicated to crafting seamless digital experiences.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 14,
-                        color: isDark
-                            ? Colors.grey.shade300
-                            : Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                         height: 1.6,
                         fontWeight: FontWeight.w500),
                   ),
@@ -236,13 +234,13 @@ class _DeveloperInfoScreenState extends State<DeveloperInfoScreen>
                   .slideY(begin: 0.2, duration: 600.ms, curve: Curves.easeOut)
                   .fadeIn(delay: 200.ms),
               const SizedBox(height: 32),
-              Align(
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text("Connect with me",
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey)),
+                        color: AppColors.textMuted)),
               ).animate().fadeIn(delay: 600.ms),
               const SizedBox(height: 12),
               StreamBuilder<List<Map<String, dynamic>>>(

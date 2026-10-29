@@ -116,10 +116,10 @@ class _UpcomingClassesTabState extends State<UpcomingClassesTab> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: AppColors.surfaceCard,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
+                          color: AppColors.surfaceCardBorder,
                         ),
                       ),
                       child: Row(

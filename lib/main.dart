@@ -171,18 +171,64 @@ class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObse
         );
       },
       theme: ThemeData(
+        useMaterial3: true,
         brightness: Brightness.dark,
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: Colors.transparent,
         canvasColor: Colors.transparent,
-        cardColor: AppColors.surfaceDark,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        cardColor: AppColors.surfaceCard,
+        colorScheme: const ColorScheme.dark(
+          primary: AppColors.primary,
+          onPrimary: Colors.white,
+          secondary: AppColors.accent,
+          onSecondary: Colors.white,
+          surface: AppColors.surfaceCard,
+          onSurface: AppColors.textPrimary,
+          error: AppColors.error,
+          onError: Colors.white,
+        ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+          titleLarge: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+          bodyLarge: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 15,
+          ),
+          bodyMedium: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13.5,
+          ),
+          bodySmall: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12,
+          ),
+        ),
         appBarTheme: const AppBarTheme(
           elevation: 0,
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           centerTitle: true,
           systemOverlayStyle: SystemUiOverlayStyle.light,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: AppColors.surfaceCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.surfaceCardBorder, width: 1.0),
+          ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
       ),
       initialRoute: '/',

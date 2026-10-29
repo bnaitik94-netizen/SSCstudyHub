@@ -247,12 +247,12 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
 
                   // 2. REAL-TIME SEARCH BAR
                   Container(
-                    height: 46,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: AppColors.surfaceCard,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: AppColors.surfaceCardBorder,
                         width: 1,
                       ),
                     ),
@@ -264,8 +264,8 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
                       },
                       decoration: InputDecoration(
                         hintText: "Search subjects or chapter names...",
-                        hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.45),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textMuted,
                           fontSize: 13,
                         ),
                         prefixIcon: const Icon(Icons.search_rounded,
@@ -490,25 +490,17 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
                               borderRadius: BorderRadius.circular(22),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      style.primaryColor.withValues(alpha: 0.28),
-                                      const Color(0x221E293B),
-                                      style.primaryColor.withValues(alpha: 0.12),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(22),
+                                  color: AppColors.surfaceCard,
+                                  borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: style.accentColor.withValues(alpha: 0.45),
-                                    width: 1.2,
+                                    color: style.accentColor.withValues(alpha: 0.35),
+                                    width: 1.0,
                                   ),
-                                  boxShadow: [
+                                  boxShadow: const [
                                     BoxShadow(
-                                      color: style.primaryColor.withValues(alpha: 0.18),
-                                      blurRadius: 14,
-                                      offset: const Offset(0, 4),
+                                      color: Color(0x26000000),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 3),
                                     ),
                                   ],
                                 ),

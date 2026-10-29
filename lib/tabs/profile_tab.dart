@@ -45,12 +45,12 @@ class _ProfileTabState extends State<ProfileTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF162544),
+        backgroundColor: AppColors.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: BorderSide(
-            color: AppColors.accent.withValues(alpha: 0.35),
-            width: 1.2,
+          side: const BorderSide(
+            color: AppColors.surfaceCardBorder,
+            width: 1.0,
           ),
         ),
         title: const Row(
@@ -207,7 +207,7 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
               child: CircleAvatar(
                 radius: 46,
-                backgroundColor: const Color(0xFF162544),
+                backgroundColor: AppColors.surfaceCard,
                 child: Text(
                   _currentName.isNotEmpty ? _currentName[0].toUpperCase() : 'S',
                   style: const TextStyle(

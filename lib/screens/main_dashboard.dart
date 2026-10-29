@@ -143,10 +143,10 @@ class _MainDashboardState extends State<MainDashboard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: AppColors.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Colors.white12),
+          side: const BorderSide(color: AppColors.surfaceCardBorder),
         ),
         title: const Row(
           children: [
@@ -517,40 +517,53 @@ class _MainDashboardState extends State<MainDashboard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                          ),
+                          color: const Color(0xF50F172A),
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
+                          border: Border.all(
+                            color: AppColors.liveRed.withValues(alpha: 0.65),
+                            width: 1.2,
+                          ),
+                          boxShadow: const [
                             BoxShadow(
-                              color: const Color(0xFFDC2626).withValues(alpha: 0.4),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
+                              color: Color(0x40000000),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
                             ),
                           ],
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 1,
-                          ),
                         ),
                         child: Row(
                           children: [
                             Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.liveRed,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.circle, size: 7, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    "LIVE",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                "🔴 LIVE NOW: $liveTitle",
+                                liveTitle,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -558,19 +571,28 @@ class _MainDashboardState extends State<MainDashboard> {
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.liveRed, Color(0xFFDC2626)],
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text(
-                                "JOIN",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.5,
-                                ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "JOIN",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  SizedBox(width: 2),
+                                  Icon(Icons.arrow_forward_rounded, size: 12, color: Colors.white),
+                                ],
                               ),
                             ),
                           ],
