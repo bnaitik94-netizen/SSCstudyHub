@@ -65,6 +65,41 @@ An enterprise-grade, real-time live lecture and study hub platform engineered fo
 
 ---
 
+## 🎨 Material Design 3 UI System & Low-End Architecture
+
+The entire user interface has been overhauled to a production-ready Material Design 3 design system strictly optimized for median hardware (2GB RAM, weak Adreno/Mali GPUs) while providing a premium, minimalist experience (Linear/Notion/Google Keep M3 aesthetics).
+
+### 1. Theme Tokens (`lib/core/theme/`)
+* **`AppColors`**: Centralized semantic token architecture.
+  * **Brand Seed**: `#4F46E5` (Slate Indigo) generating harmonious M3 tonal palettes.
+  * **Surfaces**: Multi-tier Slate surfaces for Light (`#F8FAFC` to `#CBD5E1`) and Neutral-Dark (`#0F1117` to `#384055`), avoiding pure `#000000` to prevent OLED smearing and visual harshness.
+  * **Functional Tokens**: WCAG AA compliant colors for `success` (`#10B981`), `warning` (`#F59E0B`), `error` (`#EF4444`), and `info` (`#3B82F6`) paired with high-contrast surfaces.
+* **`AppSpacing`**: Predictable geometric scale (`xs: 4`, `sm: 8`, `md: 12`, `lg: 16`, `xl: 24`, `xxl: 32`, `xxxl: 48`) and rounded corner radii (`radiusSm: 8` to `radiusFull: 999`).
+* **`AppTypography`**: Full Material 3 scale built on `GoogleFonts.inter` with strict weight constraints (two body weights: 400 & 500; display weight: 700).
+* **`AppComponentTheme`**: Centralized styling for Cards, Buttons (Filled, Outlined, Text), Inputs, Badges, NavigationBar, Dialogs, and Bottom Sheets.
+* **`AppTheme`**: Provides `AppTheme.light()` and `AppTheme.dark()` fully wired to Flutter's `MaterialApp`.
+
+### 2. Production Reusable Widget Library (`lib/core/widgets/`)
+All widgets are 100% complete with no stubs, TODOs, or placeholders:
+* **`AppCard`**: Zero elevation, subtle 1px border, smooth ripple feedback, and low GPU overhead.
+* **`AppButton`**: 3 variants (`.filled`, `.outlined`, `.text`) with integrated adaptive loading indicators and minimum 48x48dp touch targets.
+* **`AppTextField`**: Material 3 filled/outlined input with animated label and inline validation errors.
+* **`AppAvatar`**: Memory-cached network image avatar with deterministic color initials fallback.
+* **`AppBadge`**: Semantic pill badges for status feedback (`LIVE`, `SCHEDULED`, `SSC 2026`).
+* **`AppEmptyState`**: Minimalist empty and standby state presentation with optional recovery actions.
+* **`AppLoadingShimmer`**: Low-overhead GPU shimmer placeholder for list and card loading.
+* **`AppDivider`**: Ultra-thin 0.5dp divider with optional center label support.
+* **`AppSectionHeader`**: Standardized section header with title and action button.
+* **`AppBottomSheet`**: Modal sheet with top drag handle and `DraggableScrollableSheet` support.
+
+### 3. Low-End Hardware Optimization Rules (Applied System-Wide)
+* **Zero Runtime Blurs**: Eliminated all `BackdropFilter` and runtime Gaussian blurs, replacing them with single-pass tonal surface colors.
+* **Memory-Bound Images**: Enforced `memCacheWidth` and `memCacheHeight` on all network image requests to prevent bitmap memory spikes.
+* **Repaint Boundary Isolation**: Dynamic widgets (live streaming badges, bottom navigation bar, reactive lists) are isolated inside `RepaintBoundary` to prevent unnecessary root repaints.
+* **Minimal Startup**: Non-critical services (notifications sync, background music prewarm) are dispatched post-first-frame to ensure instant app launch.
+
+---
+
 ## 📱 Mobile Android APKs
 
 The project is configured with ABI splitting to produce lightweight, highly optimized Android APK packages:

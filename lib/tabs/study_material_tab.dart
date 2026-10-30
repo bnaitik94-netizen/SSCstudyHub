@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/syllabus_data.dart';
 import '../models/study_model.dart';
-import '../utils/app_colors.dart';
+import '../core/theme/app_colors.dart';
+import '../core/theme/app_spacing.dart';
+import '../core/widgets/app_widgets.dart';
 import '../screens/chapter_list_screen.dart';
 
 class StudyMaterialTab extends StatefulWidget {
@@ -25,21 +27,6 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
     'Social Studies',
     'Languages',
   ];
-
-  IconData _getCategoryIcon(String cat) {
-    switch (cat) {
-      case 'Mathematics':
-        return Icons.calculate_rounded;
-      case 'Sciences':
-        return Icons.biotech_rounded;
-      case 'Social Studies':
-        return Icons.public_rounded;
-      case 'Languages':
-        return Icons.translate_rounded;
-      default:
-        return Icons.grid_view_rounded;
-    }
-  }
 
   @override
   void dispose() {
@@ -74,7 +61,11 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
       case 'Sciences':
         return lower.contains('science');
       case 'Social Studies':
-        return lower.contains('itihas') || lower.contains('history') || lower.contains('bhugol') || lower.contains('geography') || lower.contains('rajyashastra');
+        return lower.contains('itihas') ||
+            lower.contains('history') ||
+            lower.contains('bhugol') ||
+            lower.contains('geography') ||
+            lower.contains('rajyashastra');
       case 'Languages':
         return lower.contains('marathi') || lower.contains('english') || lower.contains('hindi');
       default:
@@ -134,6 +125,7 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     const allSubjects = SyllabusData.semiClass10;
     final filteredSubjects = allSubjects.where((subject) {
       final matchesCat = _matchesCategory(subject, _selectedCategory);
@@ -149,324 +141,123 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
       bottom: false,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
+          parent: ClampingScrollPhysics(),
         ),
         slivers: [
-          // 1. TOP HEADER & OFFICIAL BALBHARTI PORTAL PILL
+          // ── 1. HEADER & SEARCH ─────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontal,
+                vertical: AppSpacing.md,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.primaryLight.withValues(alpha: 0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.verified_rounded, size: 14, color: AppColors.accent),
-                            SizedBox(width: 5),
-                            Text(
-                              "MAHARASHTRA STATE BOARD",
-                              style: TextStyle(
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 10.5,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ],
-                        ),
+                      const AppBadge(
+                        label: "MAHARASHTRA STATE BOARD",
+                        variant: AppBadgeVariant.info,
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _openOfficialLibrary(context),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.20),
-                                width: 1,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.open_in_new_rounded, size: 12, color: Colors.white),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Balbharti E-Library",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                        label: const Text("Balbharti Library"),
+                        onPressed: () => _openOfficialLibrary(context),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Syllabus Explorer",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    "Study Materials",
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "SSC Class 10 • All official textbook PDFs & chapter solutions",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    "Official Class 10th textbooks, chapter summaries & revision notes",
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // 2. REAL-TIME SEARCH BAR
-                  Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceCard,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.surfaceCardBorder,
-                        width: 1,
-                      ),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13.5),
-                      onChanged: (val) {
-                        setState(() => _searchQuery = val.trim());
-                      },
-                      decoration: InputDecoration(
-                        hintText: "Search subjects or chapter names...",
-                        hintStyle: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 13,
-                        ),
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            size: 20, color: AppColors.accent),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close_rounded,
-                                    size: 16, color: Colors.white70),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // 3. RESPONSIVE CATEGORY TABS
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final bool isWide = constraints.maxWidth >= 600;
-                      if (isWide) {
-                        return Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
-                            ),
-                          ),
-                          child: Row(
-                            children: _categories.map((cat) {
-                              final bool isSelected = cat == _selectedCategory;
-                              final IconData icon = _getCategoryIcon(cat);
-
-                              return Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    setState(() => _selectedCategory = cat);
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(vertical: 9),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                color: AppColors.primary.withValues(alpha: 0.4),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          icon,
-                                          size: 15,
-                                          color: isSelected ? Colors.white : Colors.white70,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Flexible(
-                                          child: Text(
-                                            cat,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                              color: isSelected ? Colors.white : Colors.white70,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      } else {
-                        return SizedBox(
-                          height: 38,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _categories.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
-                            itemBuilder: (context, idx) {
-                              final cat = _categories[idx];
-                              final isSelected = cat == _selectedCategory;
-                              final IconData icon = _getCategoryIcon(cat);
-
-                              return Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    setState(() => _selectedCategory = cat);
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 180),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : Colors.white.withValues(alpha: 0.07),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? AppColors.accent
-                                            : Colors.white.withValues(alpha: 0.15),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          icon,
-                                          size: 14,
-                                          color: isSelected ? Colors.white : Colors.white70,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          cat,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                            color: isSelected ? Colors.white : Colors.white70,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
+                  // Search Field
+                  AppTextField(
+                    controller: _searchController,
+                    label: "Search syllabus",
+                    hint: "Search subjects or chapter names...",
+                    prefix: const Icon(Icons.search_rounded, size: 20),
+                    suffix: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
                             },
-                          ),
-                        );
-                      }
+                          )
+                        : null,
+                    onChanged: (val) {
+                      setState(() => _searchQuery = val.trim());
                     },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Category Filter Chips
+                  SizedBox(
+                    height: 38,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: _categories.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+                      itemBuilder: (context, idx) {
+                        final cat = _categories[idx];
+                        final isSelected = cat == _selectedCategory;
+
+                        return ChoiceChip(
+                          label: Text(cat),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedCategory = cat);
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // 4. SUBJECTS GRID
+          // ── 2. SUBJECTS GRID ───────────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+              vertical: AppSpacing.sm,
+            ),
             sliver: filteredSubjects.isEmpty
-                ? SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.all(32),
-                      margin: const EdgeInsets.symmetric(vertical: 24),
-                      decoration: AppColors.liquidGlassCard,
-                      child: const Column(
-                        children: [
-                          Icon(Icons.search_off_rounded, size: 40, color: Colors.white38),
-                          SizedBox(height: 12),
-                          Text(
-                            "No matching subjects found",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Try searching for another chapter or clear the category filter.",
-                            style: TextStyle(color: Colors.white54, fontSize: 12),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                ? const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+                      child: AppEmptyState(
+                        icon: Icons.search_off_rounded,
+                        title: "No subjects found",
+                        subtitle: "Try another search term or clear category filters.",
                       ),
                     ),
                   )
                 : SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).size.width >= 850 ? 4 : 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: MediaQuery.of(context).size.width >= 850 ? 1.05 : 0.88,
+                      crossAxisCount: MediaQuery.sizeOf(context).width >= 850 ? 4 : 2,
+                      crossAxisSpacing: AppSpacing.md,
+                      mainAxisSpacing: AppSpacing.md,
+                      childAspectRatio: MediaQuery.sizeOf(context).width >= 850 ? 1.15 : 0.95,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -475,128 +266,82 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
                         final cleanTitle = subject.name.replaceFirst(RegExp(r'^\d+\.\s*'), '');
 
                         return RepaintBoundary(
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChapterListScreen(subject: subject),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(22),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceCard,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: style.accentColor.withValues(alpha: 0.35),
-                                    width: 1.0,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x26000000),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 3),
-                                    ),
-                                  ],
+                          child: AppCard(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChapterListScreen(subject: subject),
                                 ),
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              );
+                            },
+                            padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    // Header with Tag and Icon
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: style.primaryColor.withValues(alpha: 0.35),
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: style.accentColor.withValues(alpha: 0.6),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            style.icon,
-                                            color: Colors.white,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.35),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            "${subject.chapters.length} Ch",
-                                            style: TextStyle(
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: style.accentColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                    Container(
+                                      padding: const EdgeInsets.all(AppSpacing.sm),
+                                      decoration: BoxDecoration(
+                                        color: style.primaryColor.withValues(alpha: 0.15),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        style.icon,
+                                        color: style.primaryColor,
+                                        size: 22,
+                                      ),
                                     ),
-
-                                    // Title & Category tag
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    AppBadge(
+                                      label: "${subject.chapters.length} Ch",
+                                      variant: AppBadgeVariant.neutral,
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      style.categoryTag,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: style.primaryColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      cleanTitle,
+                                      style: theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Row(
                                       children: [
                                         Text(
-                                          style.categoryTag,
-                                          style: TextStyle(
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.5,
-                                            color: style.accentColor.withValues(alpha: 0.85),
+                                          "View Notes",
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          cleanTitle,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white,
-                                            height: 1.25,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "View Notes",
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white.withValues(alpha: 0.8),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              Icons.arrow_forward_rounded,
-                                              size: 13,
-                                              color: style.accentColor,
-                                            ),
-                                          ],
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 12,
+                                          color: theme.colorScheme.primary,
                                         ),
                                       ],
                                     ),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         );
@@ -604,6 +349,10 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
                       childCount: filteredSubjects.length,
                     ),
                   ),
+          ),
+
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppSpacing.xxxl),
           ),
         ],
       ),

@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'utils/app_colors.dart';
-import 'screens/splash_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/app_colors.dart';
+import 'core/router/app_router.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart'; 
 import 'services/notification_service.dart';
@@ -43,6 +43,7 @@ void main() async {
     if (!kIsWeb) {
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     }
+    // PERF: Non-blocking background notification initialization
     unawaited(NotificationService().initialize());
   } catch (e) {
     debugPrint("Firebase init error: $e");
@@ -73,27 +74,27 @@ void main() async {
 
   ErrorWidget.builder = (FlutterErrorDetails details) {
     debugPrint("UI Render Error: ${details.exceptionAsString()}");
-    return const Directionality(
+    return Directionality(
       textDirection: TextDirection.ltr,
       child: Scaffold(
-        backgroundColor: AppColors.cosmicBlueDeep,
+        backgroundColor: AppColors.surfaceLowestDark,
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline_rounded, color: AppColors.error, size: 56),
-                SizedBox(height: 16),
-                Text(
+                const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 56),
+                const SizedBox(height: 16),
+                const Text(
                   "Oops! Something went wrong.",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   "We are working to fix this. Please refresh the app.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
                 ),
               ],
             ),
@@ -150,13 +151,19 @@ class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObse
       navigatorKey: appNavigatorKey,
       scaffoldMessengerKey: appScaffoldMessengerKey,
       themeMode: ThemeMode.dark,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       builder: (context, child) {
         final mediaQueryData = MediaQuery.of(context);
         final constrainedTextScale = mediaQueryData.textScaler.clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2);
         
+        // PERF: Wrap in RepaintBoundary and optimize scroll behavior for 60fps
         Widget body = ScrollConfiguration(
-          behavior: const _PremiumScrollBehavior(),
-          child: _PremiumStudyBackground(child: child ?? const SizedBox.shrink()),
+          behavior: const _AppScrollBehavior(),
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
 
         return MediaQuery(
@@ -170,135 +177,17 @@ class _SSCStudyHubAppState extends State<SSCStudyHubApp> with WidgetsBindingObse
           ),
         );
       },
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: Colors.transparent,
-        canvasColor: Colors.transparent,
-        cardColor: AppColors.surfaceCard,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.primary,
-          onPrimary: Colors.white,
-          secondary: AppColors.accent,
-          onSecondary: Colors.white,
-          surface: AppColors.surfaceCard,
-          onSurface: AppColors.textPrimary,
-          error: AppColors.error,
-          onError: Colors.white,
-        ),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-          titleLarge: const TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
-          bodyLarge: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 15,
-          ),
-          bodyMedium: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13.5,
-          ),
-          bodySmall: const TextStyle(
-            color: AppColors.textMuted,
-            fontSize: 12,
-          ),
-        ),
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          systemOverlayStyle: SystemUiOverlayStyle.light,
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.4,
-          ),
-        ),
-        dialogTheme: DialogThemeData(
-          backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.surfaceCardBorder, width: 1.0),
-          ),
-        ),
-        bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-      ),
-      initialRoute: '/',
-      onGenerateRoute: (settings) {
-        final uri = Uri.parse(settings.name ?? '/');
-        final path = uri.path.toLowerCase();
-
-        if (path == '/home' ||
-            path == '/study' ||
-            path == '/classes' ||
-            path == '/schedule' ||
-            path == '/profile' ||
-            path == '/live' ||
-            path == '/watch' ||
-            path == '/player') {
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (_) => SplashScreen(
-              targetRoute: path,
-              queryParams: uri.queryParameters,
-            ),
-          );
-        }
-
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (_) => const SplashScreen(),
-        );
-      },
+      initialRoute: AppRouter.splash,
+      onGenerateRoute: AppRouter.onGenerateRoute,
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class _PremiumScrollBehavior extends ScrollBehavior {
-  const _PremiumScrollBehavior();
+class _AppScrollBehavior extends ScrollBehavior {
+  const _AppScrollBehavior();
   @override
   Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
-  }
-}
-
-class _PremiumStudyBackground extends StatelessWidget {
-  final Widget child;
-  const _PremiumStudyBackground({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // 🚀 ULTRA-HIGH PERFORMANCE BACKGROUND: Single GPU pass, zero dropped frames
-        const RepaintBoundary(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.5, 1.0],
-                colors: [
-                  AppColors.backgroundTop,
-                  AppColors.backgroundMiddle,
-                  AppColors.backgroundBottom,
-                ],
-              ),
-            ),
-          ),
-        ),
-        RepaintBoundary(child: child),
-      ],
-    );
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/study_model.dart';
-import '../utils/app_colors.dart';
+import '../core/theme/app_colors.dart';
+import '../core/theme/app_spacing.dart';
+import '../core/widgets/app_widgets.dart';
 import 'pdf_viewer_screen.dart';
 import '../widgets/ai_chapter_guide_sheet.dart';
 
@@ -51,149 +52,107 @@ class ChapterListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String cleanTitle = subject.name.replaceFirst(RegExp(r'^\d+\.\s*'), '');
+    final theme = Theme.of(context);
+    final String cleanTitle = subject.name.replaceFirst(RegExp(r'^\d+\.\s*'), '');
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              size: 18, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          cleanTitle,
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
-            letterSpacing: -0.4,
-          ),
-        ),
+        title: Text(cleanTitle),
         actions: [
           IconButton(
             tooltip: "Official Balbharti Books",
-            icon: const Icon(Icons.school_rounded, color: AppColors.accent),
+            icon: const Icon(Icons.school_rounded),
             onPressed: () => _openOfficialLibrary(context),
           ),
         ],
       ),
-      body: ListView.builder(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 40),
+      body: ListView.separated(
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenHorizontal,
+          vertical: AppSpacing.md,
+        ),
         itemCount: subject.chapters.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.listItemGap),
         itemBuilder: (context, index) {
           final chapter = subject.chapters[index];
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: AppColors.liquidGlassCard,
-            child: Material(
-              color: Colors.transparent,
-              child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                onTap: () =>
-                    _openPdf(context, chapter.pdfFileName, chapter.title),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                leading: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.primaryLight.withValues(alpha: 0.35),
-                      width: 1,
+          return RepaintBoundary(
+            child: AppCard(
+              onTap: () => _openPdf(context, chapter.pdfFileName, chapter.title),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "${index + 1}",
-                      style: const TextStyle(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-                title: Text(
-                  chapter.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.35,
-                  ),
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.picture_as_pdf_rounded,
-                        size: 13,
-                        color: Colors.white.withValues(alpha: 0.45),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Balbharti Textbook Chapter",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.45),
+                    child: Center(
+                      child: Text(
+                        "${index + 1}",
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onPrimaryContainer,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: "AI Chapter Study Guide & Formulas",
-                      icon: const Icon(
-                        Icons.auto_awesome_rounded,
-                        color: Color(0xFFA855F7),
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints:
-                          const BoxConstraints(minWidth: 34, minHeight: 34),
-                      onPressed: () => AiChapterGuideSheet.show(
-                        context,
-                        chapter.title,
-                        subject.name,
-                      ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          chapter.title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.picture_as_pdf_rounded,
+                              size: 13,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              "Balbharti Textbook Chapter",
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: AppColors.accent,
-                        size: 13,
-                      ),
+                  ),
+                  IconButton(
+                    tooltip: "AI Chapter Study Guide & Formulas",
+                    icon: const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 20,
                     ),
-                  ],
-                ),
+                    onPressed: () => AiChapterGuideSheet.show(
+                      context,
+                      chapter.title,
+                      subject.name,
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                ],
               ),
             ),
-          )
-              .animate()
-              .fadeIn(
-                  delay:
-                      Duration(milliseconds: 25 * (index < 12 ? index : 12)))
-              .slideX(begin: 0.05);
+          );
         },
       ),
     );

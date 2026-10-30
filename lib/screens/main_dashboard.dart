@@ -7,7 +7,9 @@ import '../tabs/home_tab.dart';
 import '../tabs/study_material_tab.dart';
 import '../tabs/upcoming_classes_tab.dart';
 import '../tabs/profile_tab.dart';
-import '../utils/app_colors.dart';
+import '../core/theme/app_colors.dart';
+import '../core/theme/app_spacing.dart';
+import '../core/widgets/app_widgets.dart';
 import '../screens/live_class_room.dart';
 import '../services/notification_service.dart';
 import '../services/background_music_service.dart';
@@ -69,10 +71,11 @@ class _MainDashboardState extends State<MainDashboard> {
       }
     }
 
+    // PERF: Post-frame initialization for non-critical setup
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService().checkAndPromptPermission(context);
       NotificationService().syncTokenAndTopics();
-      // 🎵 Automatically start background anthem seamlessly
+      // 🎵 Seamless background study anthem
       BackgroundMusicService.instance.startAutoMusic();
     });
   }
@@ -102,20 +105,7 @@ class _MainDashboardState extends State<MainDashboard> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Color(0xFF162544),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border(
-            top: BorderSide(color: Color(0x66FFFFFF), width: 1.2),
-          ),
-        ),
-        child: const ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          child: DoubtsPanel(),
-        ),
-      ),
+      builder: (_) => const DoubtsPanel(),
     );
   }
 
@@ -124,37 +114,31 @@ class _MainDashboardState extends State<MainDashboard> {
     HapticFeedback.mediumImpact();
     Navigator.push(
       context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 140),
-        pageBuilder: (_, __, ___) => LiveClassRoom(
+      MaterialPageRoute(
+        builder: (_) => LiveClassRoom(
           userName: _studentName,
           videoId: liveVideoId,
           title: liveTitle,
           isAdmin: false,
         ),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
       ),
     );
   }
 
   void _showNotificationsDialog() {
     HapticFeedback.lightImpact();
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.surfaceCardBorder),
-        ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.notifications_active_rounded, color: AppColors.accent, size: 22),
-            SizedBox(width: 10),
+            Icon(Icons.notifications_active_rounded, color: theme.colorScheme.primary, size: 22),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               "Announcements",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -165,12 +149,12 @@ class _MainDashboardState extends State<MainDashboard> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
                   child: Center(
                     child: SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
+                      child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                     ),
                   ),
                 );
@@ -178,25 +162,10 @@ class _MainDashboardState extends State<MainDashboard> {
 
               final docs = snapshot.data?.docs ?? [];
               if (docs.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.mark_email_read_rounded, color: Colors.white38, size: 38),
-                      SizedBox(height: 12),
-                      Text(
-                        "No announcements yet",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "You're all caught up with live classes and notices.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                    ],
-                  ),
+                return const AppEmptyState(
+                  icon: Icons.mark_email_read_rounded,
+                  title: "No announcements yet",
+                  subtitle: "You're all caught up with live classes and notices.",
                 );
               }
 
@@ -204,9 +173,9 @@ class _MainDashboardState extends State<MainDashboard> {
                 constraints: const BoxConstraints(maxHeight: 380),
                 child: ListView.separated(
                   shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   itemCount: docs.length,
-                  separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 16),
+                  separatorBuilder: (_, __) => const AppDivider(),
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>? ?? {};
                     final title = data['title']?.toString() ?? 'Announcement';
@@ -231,28 +200,90 @@ class _MainDashboardState extends State<MainDashboard> {
                       }
                     }
 
-                    return _buildNotificationItem(
-                      title: title,
-                      body: body,
-                      time: timeStr,
-                      icon: isLive ? Icons.sensors_rounded : Icons.campaign_rounded,
-                      isLive: isLive,
+                    return InkWell(
                       onTap: (videoId != null && videoId.isNotEmpty)
                           ? () {
                               Navigator.pop(ctx);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => LiveClassRoom(
-                                    userName: widget.studentName,
-                                    videoId: videoId,
-                                    title: title,
-                                    isAdmin: false,
-                                  ),
-                                ),
-                              );
+                              _openLiveClass(videoId, title);
                             }
                           : null,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(AppSpacing.sm),
+                              decoration: BoxDecoration(
+                                color: isLive
+                                    ? AppColors.error
+                                    : theme.colorScheme.primary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                              ),
+                              child: Icon(
+                                isLive ? Icons.sensors_rounded : Icons.campaign_rounded,
+                                color: isLive ? Colors.white : theme.colorScheme.primary,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          title,
+                                          style: theme.textTheme.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      if (isLive)
+                                        const AppBadge(
+                                          label: "LIVE",
+                                          variant: AppBadgeVariant.error,
+                                        ),
+                                    ],
+                                  ),
+                                  if (body.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      body,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        timeStr,
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                      if (videoId != null && videoId.isNotEmpty)
+                                        Text(
+                                          "Tap to join →",
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -262,9 +293,9 @@ class _MainDashboardState extends State<MainDashboard> {
         ),
         actions: [
           if (!kIsWeb)
-            TextButton.icon(
-              icon: const Icon(Icons.notifications_active, size: 15, color: AppColors.accent),
-              label: const Text("Test System Alert", style: TextStyle(color: AppColors.accent, fontSize: 12)),
+            AppButton.text(
+              label: "Test System Alert",
+              icon: const Icon(Icons.notifications_active, size: 16),
               onPressed: () {
                 NotificationService().showNativeNotificationFromDart(
                   title: "🔔 SSC Study Hub Alert",
@@ -272,109 +303,31 @@ class _MainDashboardState extends State<MainDashboard> {
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text("Test notification sent to phone status bar! Check top drawer."),
+                    content: Text("Test notification sent to phone status bar!"),
                     duration: Duration(seconds: 3),
-                    backgroundColor: Color(0xFF0F172A),
                   ),
                 );
               },
             ),
-          TextButton(
+          AppButton.text(
+            label: "Close",
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Close", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNotificationItem({
-    required String title,
-    required String body,
-    required String time,
-    required IconData icon,
-    bool isLive = false,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isLive ? AppColors.liveRed : AppColors.primary.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: Colors.white, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
-                        ),
-                      ),
-                      if (isLive)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.liveRed,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            "LIVE",
-                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (body.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                      if (onTap != null)
-                        const Text(
-                          "Tap to join →",
-                          style: TextStyle(color: AppColors.accent, fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
     final bool isDesktopPlatform = defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.linux;
-    // 💻 Always prioritize Desktop UI on PC/laptops, and on tablets/screens >= 768px:
     final bool isDesktop = isDesktopPlatform || screenWidth >= 768;
 
     return StreamBuilder<DocumentSnapshot>(
+      // PERF: Single top-level Firestore stream subscription for live status
       stream: FirebaseFirestore.instance
           .collection('live_session')
           .doc('current')
@@ -409,9 +362,8 @@ class _MainDashboardState extends State<MainDashboard> {
           ],
         );
 
-        Widget content;
         if (isDesktop) {
-          content = CallbackShortcuts(
+          return CallbackShortcuts(
             bindings: {
               const SingleActivator(LogicalKeyboardKey.keyB, control: true): () {
                 setState(() => _isSidebarExpanded = !_isSidebarExpanded);
@@ -433,7 +385,6 @@ class _MainDashboardState extends State<MainDashboard> {
             child: Focus(
               autofocus: true,
               child: Scaffold(
-                backgroundColor: Colors.transparent,
                 body: Row(
                   children: [
                     DesktopSidebar(
@@ -484,347 +435,101 @@ class _MainDashboardState extends State<MainDashboard> {
               ),
             ),
           );
-        } else {
-          content = Scaffold(
-            backgroundColor: Colors.transparent,
-            extendBody: true,
-            body: Stack(
-              children: [
-                RepaintBoundary(child: pageBody),
-                if (isCurrentlyLive && liveVideoId.isNotEmpty)
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + 8,
-                    left: 20,
-                    right: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            transitionDuration: const Duration(milliseconds: 140),
-                            pageBuilder: (_, __, ___) => LiveClassRoom(
-                              userName: _studentName,
-                              videoId: liveVideoId,
-                              title: liveTitle,
-                              isAdmin: false,
-                            ),
-                            transitionsBuilder: (_, anim, __, child) =>
-                                FadeTransition(opacity: anim, child: child),
+        }
+
+        // Mobile Layout with Material 3 NavigationBar
+        return Scaffold(
+          body: Stack(
+            children: [
+              RepaintBoundary(child: pageBody),
+              if (isCurrentlyLive && liveVideoId.isNotEmpty)
+                Positioned(
+                  top: MediaQuery.paddingOf(context).top + AppSpacing.sm,
+                  left: AppSpacing.screenHorizontal,
+                  right: AppSpacing.screenHorizontal,
+                  child: Semantics(
+                    button: true,
+                    label: "Join live class: $liveTitle",
+                    child: AppCard(
+                      onTap: () => _openLiveClass(liveVideoId, liveTitle),
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderColor: AppColors.error,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Row(
+                        children: [
+                          const AppBadge(
+                            label: "LIVE",
+                            variant: AppBadgeVariant.error,
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xF50F172A),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.liveRed.withValues(alpha: 0.65),
-                            width: 1.2,
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Text(
+                              liveTitle,
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x40000000),
-                              blurRadius: 12,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppColors.liveRed,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.circle, size: 7, color: Colors.white),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "LIVE",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                liveTitle,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [AppColors.liveRed, Color(0xFFDC2626)],
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    "JOIN",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  SizedBox(width: 2),
-                                  Icon(Icons.arrow_forward_rounded, size: 12, color: Colors.white),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                          const SizedBox(width: AppSpacing.sm),
+                          const Icon(Icons.arrow_forward_rounded, size: 16),
+                        ],
                       ),
                     ),
                   ),
+                ),
+            ],
+          ),
+          // PERF: RepaintBoundary around bottom navigation bar to isolate paint ticks
+          bottomNavigationBar: RepaintBoundary(
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onTabTapped,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              destinations: [
+                const NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: "Home",
+                  tooltip: "Home Dashboard",
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.menu_book_outlined),
+                  selectedIcon: Icon(Icons.menu_book_rounded),
+                  label: "Study",
+                  tooltip: "Study Material",
+                ),
+                NavigationDestination(
+                  icon: Badge(
+                    isLabelVisible: isCurrentlyLive,
+                    backgroundColor: AppColors.error,
+                    smallSize: 8,
+                    child: const Icon(Icons.calendar_today_outlined),
+                  ),
+                  selectedIcon: Badge(
+                    isLabelVisible: isCurrentlyLive,
+                    backgroundColor: AppColors.error,
+                    smallSize: 8,
+                    child: const Icon(Icons.calendar_today_rounded),
+                  ),
+                  label: "Classes",
+                  tooltip: "Upcoming Classes",
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.person_outline_rounded),
+                  selectedIcon: Icon(Icons.person_rounded),
+                  label: "Profile",
+                  tooltip: "Student Profile",
+                ),
               ],
             ),
-            bottomNavigationBar: RepaintBoundary(
-              child: _LiquidGlassNavBar(
-                currentIndex: _currentIndex,
-                onTap: _onTabTapped,
-              ),
-            ),
-          );
-        }
-
-        return content;
-      },
-    );
-  }
-}
-
-class _LiquidGlassNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  const _LiquidGlassNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  static const List<_TabItemData> _items = [
-    _TabItemData(
-      index: 0,
-      activeIcon: Icons.home_rounded,
-      inactiveIcon: Icons.home_outlined,
-      label: "Home",
-    ),
-    _TabItemData(
-      index: 1,
-      activeIcon: Icons.menu_book_rounded,
-      inactiveIcon: Icons.menu_book_outlined,
-      label: "Study",
-    ),
-    _TabItemData(
-      index: 2,
-      activeIcon: Icons.play_circle_fill_rounded,
-      inactiveIcon: Icons.play_circle_outline_rounded,
-      label: "Schedule",
-      isLiveTarget: true,
-    ),
-    _TabItemData(
-      index: 3,
-      activeIcon: Icons.person_rounded,
-      inactiveIcon: Icons.person_outline_rounded,
-      label: "Profile",
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      // 🚀 CACHED TOP-LEVEL STREAM: Only one listener for the entire navbar
-      stream: FirebaseFirestore.instance
-          .collection('live_session')
-          .doc('current')
-          .snapshots(),
-      builder: (context, snapshot) {
-        bool isCurrentlyLive = false;
-        if (snapshot.hasData && snapshot.data!.exists) {
-          final data = snapshot.data!.data() as Map<String, dynamic>?;
-          isCurrentlyLive = data?['isLive'] == true;
-        }
-
-        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-
-        return SafeArea(
-          bottom: true,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              isLandscape ? 60 : 20,
-              0,
-              isLandscape ? 60 : 20,
-              isLandscape ? 6 : 14,
-            ),
-            child: Container(
-              height: isLandscape ? 58 : 72,
-              decoration: AppColors.liquidGlassTab,
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: isLandscape ? 4 : 6),
-              child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double tabWidth = constraints.maxWidth / _items.length;
-
-                      return Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          // 🌊 GLIDING LIQUID PILL INDICATOR
-                          AnimatedPositioned(
-                            duration: const Duration(milliseconds: 320),
-                            curve: Curves.easeOutBack,
-                            left: currentIndex * tabWidth + 4,
-                            width: tabWidth - 8,
-                            top: 2,
-                            bottom: 2,
-                            child: Container(
-                              decoration: AppColors.liquidPill,
-                            ),
-                          ),
-
-                          // TAB ITEMS
-                          Row(
-                            children: _items.map((item) {
-                              final bool isSelected = currentIndex == item.index;
-
-                              return Expanded(
-                                child: GestureDetector(
-                                  onTap: () => onTap(item.index),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: _LiquidNavItem(
-                                    data: item,
-                                    isSelected: isSelected,
-                                    isCurrentlyLive: isCurrentlyLive,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-      },
-    );
-  }
-}
-
-class _TabItemData {
-  final int index;
-  final IconData activeIcon;
-  final IconData inactiveIcon;
-  final String label;
-  final bool isLiveTarget;
-
-  const _TabItemData({
-    required this.index,
-    required this.activeIcon,
-    required this.inactiveIcon,
-    required this.label,
-    this.isLiveTarget = false,
-  });
-}
-
-class _LiquidNavItem extends StatelessWidget {
-  final _TabItemData data;
-  final bool isSelected;
-  final bool isCurrentlyLive;
-
-  const _LiquidNavItem({
-    required this.data,
-    required this.isSelected,
-    required this.isCurrentlyLive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            AnimatedScale(
-              scale: isSelected ? 1.18 : 1.0,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutBack,
-              child: Icon(
-                isSelected ? data.activeIcon : data.inactiveIcon,
-                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.65),
-                size: 24,
-                shadows: isSelected
-                    ? [
-                        Shadow(
-                          color: AppColors.accent.withValues(alpha: 0.8),
-                          blurRadius: 10,
-                        )
-                      ]
-                    : null,
-              ),
-            ),
-
-            // Pulsing live class beacon if live (Zero extra streams)
-            if (data.isLiveTarget && isCurrentlyLive)
-              Positioned(
-                top: -2,
-                right: -6,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.liveRed,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.liveRed.withValues(alpha: 0.9),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 250),
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.60),
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            fontSize: 10.5,
-            letterSpacing: isSelected ? 0.2 : 0.0,
           ),
-          child: Text(data.label),
-        ),
-      ],
+        );
+      },
     );
   }
 }
