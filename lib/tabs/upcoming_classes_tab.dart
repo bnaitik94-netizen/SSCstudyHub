@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/app_widgets.dart';
 import '../screens/past_class_player.dart';
@@ -105,7 +106,7 @@ class _UpcomingClassesTabState extends State<UpcomingClassesTab> {
             if (_filterIndex == 0 || _filterIndex == 2)
               const _PastClassesList(),
             const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.xxxl),
+              child: SizedBox(height: 100),
             ),
           ],
         ),
@@ -427,7 +428,7 @@ class _PastClassesList extends StatelessWidget {
               : rawVideoId;
 
           return RepaintBoundary(
-            child: AppCard(
+            child: AppCard.listItem(
               onTap: () {
                 if (cleanVideoId.isNotEmpty) {
                   Navigator.push(
@@ -445,48 +446,36 @@ class _PastClassesList extends StatelessWidget {
                   );
                 }
               },
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
+              leading: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAccent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: AppColors.primaryAccent,
+                  size: 22,
+                ),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  Text(
+                    data['title'] ?? 'Recorded Class',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    child: Icon(
-                      Icons.play_arrow_rounded,
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 24,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formattedDate,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data['title'] ?? 'Recorded Class',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          formattedDate,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                 ],
               ),
             ),

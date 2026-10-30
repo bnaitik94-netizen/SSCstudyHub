@@ -1,58 +1,79 @@
 import 'package:flutter/material.dart';
 
 /// Semantic color tokens for SSC Study Hub.
-/// All colors derive from Material 3 tonal palettes and semantic design tokens.
-/// No raw hex values should exist outside this file.
+/// Engineered for Dark-First studio aesthetics (Linear/Vercel inspired).
+/// Follows strict WCAG AA contrast standards with tint-based MD3 elevations.
 class AppColors {
-  // Brand Seed
-  static const Color seedColor = Color(0xFF4F46E5); // Modern Indigo
-  static const Color secondarySeed = Color(0xFF0EA5E9); // Ocean Cyan
+  // Brand Accents
+  static const Color primaryAccent = Color(0xFF6366F1); // Electric Indigo (#6366F1)
+  static const Color seedColor = primaryAccent;
+  static const Color secondaryAccent = Color(0xFF06B6D4); // Electric Cyan (shifted 30% saturation complement)
+  static const Color secondarySeed = secondaryAccent;
+  static const Color onPrimary = Color(0xFFFFFFFF);
 
-  // Light Surfaces (Slate scale)
-  static const Color surfaceLowestLight = Color(0xFFF8FAFC);   // Page background
-  static const Color surfaceLowLight = Color(0xFFFFFFFF);      // Card background
-  static const Color surfaceMidLight = Color(0xFFF1F5F9);      // Input background / borders
-  static const Color surfaceHighLight = Color(0xFFE2E8F0);     // Elevated cards
-  static const Color surfaceHighestLight = Color(0xFFCBD5E1);  // Modal / bottom sheet
+  // Dark Mode Tokens (Primary Theme)
+  static const Color backgroundDark = Color(0xFF0A0A0F);     // Near-void, not pure black
+  static const Color surfaceDark = Color(0xFF13131A);        // Card surfaces
+  static const Color surfaceVariantDark = Color(0xFF1C1C28); // Elevated panels
+  static const Color textPrimaryDark = Color(0xFFF0F0F5);    // High-contrast primary text
+  static const Color textSecondaryDark = Color(0xFF8A8A9A);  // Subtitles & captions
+  static const Color textDisabledDark = Color(0xFF525266);   // Disabled text
+  static const Color textInverseDark = Color(0xFF0A0A0F);
+  static const Color dividerDark = Color(0x0FFFFFFF);        // rgba(255, 255, 255, 0.06)
 
-  // Dark Surfaces (Neutral Very Dark ~#0F1117, never pure black #000000)
-  static const Color surfaceLowestDark = Color(0xFF0F1117);    // Page background
-  static const Color surfaceLowDark = Color(0xFF161922);       // Card background
-  static const Color surfaceMidDark = Color(0xFF222734);       // Input background / borders
-  static const Color surfaceHighDark = Color(0xFF2D3344);      // Elevated cards
-  static const Color surfaceHighestDark = Color(0xFF384055);   // Modal / bottom sheet
+  // Surface Hierarchy Aliases (Dark)
+  static const Color surfaceLowestDark = backgroundDark;
+  static const Color surfaceLowDark = surfaceDark;
+  static const Color surfaceMidDark = surfaceVariantDark;
+  static const Color surfaceHighDark = Color(0xFF262636);     // Level 2 elevated
+  static const Color surfaceHighestDark = Color(0xFF2E2E42);  // Level 3 modal / sheet
 
-  // Text Hierarchy - Light
+  // Light Mode Tokens (Adaptive Fallback)
+  static const Color backgroundLight = Color(0xFFF8FAFC);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surfaceVariantLight = Color(0xFFF1F5F9);
   static const Color textPrimaryLight = Color(0xFF0F172A);
   static const Color textSecondaryLight = Color(0xFF64748B);
   static const Color textDisabledLight = Color(0xFF94A3B8);
   static const Color textInverseLight = Color(0xFFF8FAFC);
+  static const Color dividerLight = Color(0x0F000000);        // rgba(0, 0, 0, 0.06)
 
-  // Text Hierarchy - Dark
-  static const Color textPrimaryDark = Color(0xFFF1F5F9);
-  static const Color textSecondaryDark = Color(0xFF94A3B8);
-  static const Color textDisabledDark = Color(0xFF64748B);
-  static const Color textInverseDark = Color(0xFF0F172A);
+  // Surface Hierarchy Aliases (Light)
+  static const Color surfaceLowestLight = backgroundLight;
+  static const Color surfaceLowLight = surfaceLight;
+  static const Color surfaceMidLight = surfaceVariantLight;
+  static const Color surfaceHighLight = Color(0xFFE2E8F0);
+  static const Color surfaceHighestLight = Color(0xFFCBD5E1);
 
   // Functional Colors (WCAG AA Compliant)
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFEF4444);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color error = Color(0xFFFF4D6A);              // Vibrant Studio Red
+  static const Color success = Color(0xFF2ECC87);            // Vibrant Studio Emerald
+  static const Color warning = Color(0xFFF59E0B);            // Studio Amber
+  static const Color info = Color(0xFF06B6D4);               // Studio Cyan
+
+  // Badge & Chip Surfaces - Dark
+  static const Color successSurfaceDark = Color(0xFF093721);
+  static const Color warningSurfaceDark = Color(0xFF3D2104);
+  static const Color errorSurfaceDark = Color(0xFF3F0F18);
+  static const Color infoSurfaceDark = Color(0xFF082F3B);
+  static const Color neutralSurfaceDark = Color(0xFF1C1C28);
 
   // Badge & Chip Surfaces - Light
   static const Color successSurfaceLight = Color(0xFFECFDF5);
   static const Color warningSurfaceLight = Color(0xFFFFFBEB);
   static const Color errorSurfaceLight = Color(0xFFFEF2F2);
   static const Color infoSurfaceLight = Color(0xFFEFF6FF);
-
-  // Badge & Chip Surfaces - Dark
-  static const Color successSurfaceDark = Color(0xFF064E3B);
-  static const Color warningSurfaceDark = Color(0xFF78350F);
-  static const Color errorSurfaceDark = Color(0xFF7F1D1D);
-  static const Color infoSurfaceDark = Color(0xFF1E3A8A);
-
-  // Neutral Badge Surfaces
   static const Color neutralSurfaceLight = Color(0xFFF1F5F9);
-  static const Color neutralSurfaceDark = Color(0xFF222734);
+
+  // Elevation Tint Overlays (MD3 standard without GPU shadow cost)
+  static const double elevationLevel0 = 0.00; // Background (0%)
+  static const double elevationLevel1 = 0.05; // Cards (+5% white)
+  static const double elevationLevel2 = 0.08; // Panels (+8% white)
+  static const double elevationLevel3 = 0.11; // Modals / Sheets (+11% white)
+
+  /// Returns surface with MD3 white-overlay tint for elevation
+  static Color elevatedSurface(Color baseSurface, double tintPercent) {
+    if (tintPercent <= 0) return baseSurface;
+    return Color.alphaBlend(Colors.white.withValues(alpha: tintPercent), baseSurface);
+  }
 }

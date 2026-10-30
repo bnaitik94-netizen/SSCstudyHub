@@ -1,13 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../extensions/string_extensions.dart';
+import '../theme/app_colors.dart';
 
-/// Lightweight avatar with memory caching and deterministic color initials fallback.
+/// Studio-grade Avatar with memory caching, deterministic initials fallback,
+/// and optional gradient ring border (Linear/Instagram inspired).
 class AppAvatar extends StatelessWidget {
   final String? imageUrl;
   final String name;
   final double size;
   final Widget? badge;
+  final bool hasGradientRing;
 
   const AppAvatar({
     super.key,
@@ -15,17 +18,17 @@ class AppAvatar extends StatelessWidget {
     required this.name,
     this.size = 40.0,
     this.badge,
+    this.hasGradientRing = false,
   });
 
   static const List<Color> _avatarColors = [
-    Color(0xFF4F46E5), // Indigo
-    Color(0xFF0EA5E9), // Sky
-    Color(0xFF10B981), // Emerald
+    Color(0xFF6366F1), // Indigo
+    Color(0xFF06B6D4), // Cyan
+    Color(0xFF2ECC87), // Emerald
     Color(0xFFF59E0B), // Amber
     Color(0xFF8B5CF6), // Purple
     Color(0xFFEC4899), // Pink
-    Color(0xFF06B6D4), // Cyan
-    Color(0xFFF97316), // Orange
+    Color(0xFFFF4D6A), // Rose
   ];
 
   Color _getColorForName(String str) {
@@ -51,13 +54,14 @@ class AppAvatar extends StatelessWidget {
         name.initials,
         style: TextStyle(
           color: Colors.white,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           fontSize: size * 0.4,
         ),
       ),
     );
 
     Widget avatarCore;
+
     if (imageUrl != null && imageUrl!.trim().isNotEmpty) {
       // PERF: memCacheWidth & memCacheHeight set to prevent bitmap decompression memory spikes
       final cachePx = (size * 2).toInt();
@@ -82,14 +86,41 @@ class AppAvatar extends StatelessWidget {
       avatarCore = fallbackWidget;
     }
 
+    Widget renderedAvatar = avatarCore;
+
+    if (hasGradientRing) {
+      renderedAvatar = Container(
+        padding: const EdgeInsets.all(2.5),
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primaryAccent,
+              AppColors.secondaryAccent,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.scaffoldBackgroundColor,
+          ),
+          child: avatarCore,
+        ),
+      );
+    }
+
     if (badge != null) {
       return SizedBox(
-        width: size,
-        height: size,
+        width: hasGradientRing ? size + 9 : size,
+        height: hasGradientRing ? size + 9 : size,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            avatarCore,
+            renderedAvatar,
             Positioned(
               right: 0,
               bottom: 0,
@@ -100,6 +131,6 @@ class AppAvatar extends StatelessWidget {
       );
     }
 
-    return avatarCore;
+    return renderedAvatar;
   }
 }

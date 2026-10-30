@@ -7,27 +7,31 @@ import 'package:ssc_study_hub/core/widgets/app_widgets.dart';
 
 void main() {
   group('Core Theme System Tests', () {
-    test('AppColors tokens are properly initialized', () {
-      expect(AppColors.seedColor, const Color(0xFF4F46E5));
-      expect(AppColors.surfaceLowestLight, isNotNull);
-      expect(AppColors.surfaceLowestDark, isNotNull);
-      expect(AppColors.textPrimaryLight, isNotNull);
-      expect(AppColors.textPrimaryDark, isNotNull);
-      expect(AppColors.success, isNotNull);
-      expect(AppColors.error, isNotNull);
+    test('AppColors tokens are properly initialized with dark-first studio palette', () {
+      expect(AppColors.seedColor, const Color(0xFF6366F1));
+      expect(AppColors.primaryAccent, const Color(0xFF6366F1));
+      expect(AppColors.backgroundDark, const Color(0xFF0A0A0F));
+      expect(AppColors.surfaceDark, const Color(0xFF13131A));
+      expect(AppColors.surfaceVariantDark, const Color(0xFF1C1C28));
+      expect(AppColors.textPrimaryDark, const Color(0xFFF0F0F5));
+      expect(AppColors.textSecondaryDark, const Color(0xFF8A8A9A));
+      expect(AppColors.success, const Color(0xFF2ECC87));
+      expect(AppColors.error, const Color(0xFFFF4D6A));
     });
 
-    test('AppSpacing scale and radii are properly configured', () {
+    test('AppSpacing 4pt base grid and radii are properly configured', () {
       expect(AppSpacing.xs, 4.0);
       expect(AppSpacing.sm, 8.0);
-      expect(AppSpacing.md, 12.0);
-      expect(AppSpacing.lg, 16.0);
-      expect(AppSpacing.xl, 24.0);
+      expect(AppSpacing.md, 16.0);
+      expect(AppSpacing.lg, 24.0);
+      expect(AppSpacing.xl, 32.0);
+      expect(AppSpacing.xxl, 48.0);
+      expect(AppSpacing.xxxl, 64.0);
       expect(AppSpacing.radiusSm, 8.0);
       expect(AppSpacing.radiusMd, 12.0);
       expect(AppSpacing.radiusLg, 16.0);
       expect(AppSpacing.radiusXl, 24.0);
-      expect(AppSpacing.radiusFull, 999.0);
+      expect(AppSpacing.radiusPill, 999.0);
     });
 
     test('AppTheme generates valid Light and Dark ThemeData', () {
@@ -52,7 +56,7 @@ void main() {
     testWidgets('AppCard renders child with subtle border and zero elevation', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: AppTheme.light(useGoogleFonts: false),
+          theme: AppTheme.dark(useGoogleFonts: false),
           home: const Scaffold(
             body: AppCard(
               child: Text('Card Content'),
@@ -65,18 +69,41 @@ void main() {
       expect(find.byType(AppCard), findsOneWidget);
     });
 
+    testWidgets('AppCard.primary and listItem render correctly', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(useGoogleFonts: false),
+          home: const Scaffold(
+            body: Column(
+              children: [
+                AppCard.primary(child: Text('Primary Card')),
+                AppCard.listItem(child: Text('List Item Card')),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Primary Card'), findsOneWidget);
+      expect(find.text('List Item Card'), findsOneWidget);
+    });
+
     testWidgets('AppButton variants render labels and handle taps', (tester) async {
       bool tapped = false;
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: AppTheme.light(useGoogleFonts: false),
+          theme: AppTheme.dark(useGoogleFonts: false),
           home: Scaffold(
             body: Column(
               children: [
+                AppButton.primaryCta(
+                  label: 'Primary CTA',
+                  onPressed: () => tapped = true,
+                ),
                 AppButton.filled(
                   label: 'Filled Button',
-                  onPressed: () => tapped = true,
+                  onPressed: () {},
                 ),
                 AppButton.outlined(
                   label: 'Outlined Button',
@@ -92,18 +119,19 @@ void main() {
         ),
       );
 
+      expect(find.text('Primary CTA'), findsOneWidget);
       expect(find.text('Filled Button'), findsOneWidget);
       expect(find.text('Outlined Button'), findsOneWidget);
       expect(find.text('Text Button'), findsOneWidget);
 
-      await tester.tap(find.text('Filled Button'));
+      await tester.tap(find.text('Primary CTA'));
       expect(tapped, isTrue);
     });
 
     testWidgets('AppBadge renders with semantic label and variant color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: AppTheme.light(useGoogleFonts: false),
+          theme: AppTheme.dark(useGoogleFonts: false),
           home: const Scaffold(
             body: AppBadge(
               label: 'LIVE',
@@ -116,12 +144,12 @@ void main() {
       expect(find.text('LIVE'), findsOneWidget);
     });
 
-    testWidgets('AppEmptyState renders icon, title, and action', (tester) async {
+    testWidgets('AppEmptyState renders visual, title, and action', (tester) async {
       bool actionTriggered = false;
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: AppTheme.light(useGoogleFonts: false),
+          theme: AppTheme.dark(useGoogleFonts: false),
           home: Scaffold(
             body: AppEmptyState(
               icon: Icons.inbox_rounded,
@@ -140,6 +168,40 @@ void main() {
 
       await tester.tap(find.text('Refresh'));
       expect(actionTriggered, isTrue);
+    });
+
+    testWidgets('AppFloatingIslandNav renders destinations and responds to taps', (tester) async {
+      int tappedIndex = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(useGoogleFonts: false),
+          home: Scaffold(
+            bottomNavigationBar: AppFloatingIslandNav(
+              selectedIndex: 0,
+              onDestinationSelected: (idx) => tappedIndex = idx,
+              destinations: const [
+                AppNavDestination(
+                  icon: Icons.home_outlined,
+                  selectedIcon: Icons.home_rounded,
+                  label: 'Home',
+                ),
+                AppNavDestination(
+                  icon: Icons.menu_book_outlined,
+                  selectedIcon: Icons.menu_book_rounded,
+                  label: 'Study',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Study'), findsOneWidget);
+
+      await tester.tap(find.text('Study'));
+      expect(tappedIndex, 1);
     });
   });
 }

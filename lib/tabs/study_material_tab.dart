@@ -189,8 +189,8 @@ class _StudyMaterialTabState extends State<StudyMaterialTab> {
                     controller: _searchController,
                     label: "Search syllabus",
                     hint: "Search subjects or chapter names...",
-                    prefix: const Icon(Icons.search_rounded, size: 20),
-                    suffix: _searchQuery.isNotEmpty
+                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18),
                             onPressed: () {

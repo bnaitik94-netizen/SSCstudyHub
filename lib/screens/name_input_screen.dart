@@ -136,12 +136,11 @@ class _NameInputScreenState extends State<NameInputScreen> {
                               const SizedBox(height: AppSpacing.xxl),
                               AppTextField(
                                 controller: _nameController,
-                                focusNode: _nameFocusNode,
                                 label: "Student Full Name",
                                 hint: "e.g. Naitik Patil",
-                                prefix: const Icon(Icons.person_rounded, size: 20),
+                                prefixIcon: const Icon(Icons.person_rounded, size: 20),
                                 textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _saveName(),
+                                onSubmitted: (_) => _saveName(),
                                 validator: (val) {
                                   if (val == null || val.trim().length < 2) {
                                     return "Please enter a valid full name";
@@ -153,10 +152,10 @@ class _NameInputScreenState extends State<NameInputScreen> {
                           ),
                         ),
                       ),
-                      // Sticky bottom action button
+                      // Sticky bottom CTA button: 56px pill gradient
                       SafeArea(
                         top: false,
-                        child: AppButton.filled(
+                        child: AppButton.primaryCta(
                           label: "Get Started",
                           isFullWidth: true,
                           isLoading: _isLoading,

@@ -8,6 +8,10 @@ import '../core/widgets/app_widgets.dart';
 import 'pdf_viewer_screen.dart';
 import '../widgets/ai_chapter_guide_sheet.dart';
 
+/// Detail Screen adhering strictly to Master UI Guidelines:
+/// - Collapsing SliverAppBar with large morphing title & frosted glassmorphism.
+/// - AppCard.listItem chapters with left accent bar and tactile feedback.
+/// - Sticky action bar at the bottom with AppButton.primaryCta.
 class ChapterListScreen extends StatelessWidget {
   final Subject subject;
 
@@ -56,75 +60,98 @@ class ChapterListScreen extends StatelessWidget {
     final String cleanTitle = subject.name.replaceFirst(RegExp(r'^\d+\.\s*'), '');
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(cleanTitle),
-        actions: [
-          IconButton(
-            tooltip: "Official Balbharti Books",
-            icon: const Icon(Icons.school_rounded),
-            onPressed: () => _openOfficialLibrary(context),
-          ),
-        ],
-      ),
-      body: ListView.separated(
+      body: CustomScrollView(
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenHorizontal,
-          vertical: AppSpacing.md,
-        ),
-        itemCount: subject.chapters.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.listItemGap),
-        itemBuilder: (context, index) {
-          final chapter = subject.chapters[index];
-
-          return RepaintBoundary(
-            child: AppCard(
-              onTap: () => _openPdf(context, chapter.pdfFileName, chapter.title),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
+        slivers: [
+          // 1. COLLAPSING SLIVER APP BAR WITH GLASSMORPHISM
+          AppSliverAppBar(
+            title: cleanTitle,
+            subtitle: "${subject.chapters.length} Chapters • Maharashtra State Board",
+            expandedHeight: 140.0,
+            leading: AppIconButton(
+              icon: Icons.arrow_back_rounded,
+              tooltip: "Back",
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            actions: [
+              AppIconButton(
+                icon: Icons.school_rounded,
+                tooltip: "Official Balbharti Books",
+                onPressed: () => _openOfficialLibrary(context),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "${index + 1}",
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          chapter.title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
+              const SizedBox(width: AppSpacing.sm),
+            ],
+          ),
+
+          // 2. CHAPTERS LIST BODY
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenHorizontal,
+              AppSpacing.md,
+              AppSpacing.screenHorizontal,
+              90, // Leave room for sticky bottom action bar
+            ),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final chapter = subject.chapters[index];
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.listItemGap),
+                    child: RepaintBoundary(
+                      child: AppCard.listItem(
+                        onTap: () => _openPdf(context, chapter.pdfFileName, chapter.title),
+                        leading: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryAccent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.picture_as_pdf_rounded,
-                              size: 13,
-                              color: theme.colorScheme.onSurfaceVariant,
+                          child: Center(
+                            child: Text(
+                              "${index + 1}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: AppColors.primaryAccent,
+                              ),
                             ),
-                            const SizedBox(width: 4),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AppIconButton(
+                              icon: Icons.auto_awesome_rounded,
+                              size: 18,
+                              color: AppColors.primaryAccent,
+                              tooltip: "AI Chapter Study Guide & Formulas",
+                              onPressed: () => AiChapterGuideSheet.show(
+                                context,
+                                chapter.title,
+                                subject.name,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              chapter.title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
                             Text(
                               "Balbharti Textbook Chapter",
                               style: theme.textTheme.labelSmall?.copyWith(
@@ -133,27 +160,41 @@ class ChapterListScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: "AI Chapter Study Guide & Formulas",
-                    icon: const Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 20,
-                    ),
-                    onPressed: () => AiChapterGuideSheet.show(
-                      context,
-                      chapter.title,
-                      subject.name,
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                ],
+                  );
+                },
+                childCount: subject.chapters.length,
               ),
             ),
-          );
-        },
+          ),
+        ],
+      ),
+
+      // 3. STICKY ACTION BAR AT BOTTOM (Always visible)
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenHorizontal,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            border: Border(
+              top: BorderSide(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.dividerDark
+                    : AppColors.dividerLight,
+              ),
+            ),
+          ),
+          child: AppButton.primaryCta(
+            label: "Open Balbharti Official Portal",
+            height: 52,
+            icon: const Icon(Icons.open_in_new_rounded, size: 18),
+            onPressed: () => _openOfficialLibrary(context),
+          ),
+        ),
       ),
     );
   }

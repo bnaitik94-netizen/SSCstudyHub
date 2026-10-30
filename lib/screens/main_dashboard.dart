@@ -437,8 +437,9 @@ class _MainDashboardState extends State<MainDashboard> {
           );
         }
 
-        // Mobile Layout with Material 3 NavigationBar
+        // Mobile Layout with Custom Floating Island Navigation Bar
         return Scaffold(
+          extendBody: true,
           body: Stack(
             children: [
               RepaintBoundary(child: pageBody),
@@ -450,10 +451,8 @@ class _MainDashboardState extends State<MainDashboard> {
                   child: Semantics(
                     button: true,
                     label: "Join live class: $liveTitle",
-                    child: AppCard(
+                    child: AppCard.primary(
                       onTap: () => _openLiveClass(liveVideoId, liveTitle),
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderColor: AppColors.error,
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md,
                         vertical: AppSpacing.sm,
@@ -461,7 +460,7 @@ class _MainDashboardState extends State<MainDashboard> {
                       child: Row(
                         children: [
                           const AppBadge(
-                            label: "LIVE",
+                            label: "LIVE NOW",
                             variant: AppBadgeVariant.error,
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -469,7 +468,7 @@ class _MainDashboardState extends State<MainDashboard> {
                             child: Text(
                               liveTitle,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -484,49 +483,34 @@ class _MainDashboardState extends State<MainDashboard> {
                 ),
             ],
           ),
-          // PERF: RepaintBoundary around bottom navigation bar to isolate paint ticks
-          bottomNavigationBar: RepaintBoundary(
-            child: NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: _onTabTapped,
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: "Home",
-                  tooltip: "Home Dashboard",
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.menu_book_outlined),
-                  selectedIcon: Icon(Icons.menu_book_rounded),
-                  label: "Study",
-                  tooltip: "Study Material",
-                ),
-                NavigationDestination(
-                  icon: Badge(
-                    isLabelVisible: isCurrentlyLive,
-                    backgroundColor: AppColors.error,
-                    smallSize: 8,
-                    child: const Icon(Icons.calendar_today_outlined),
-                  ),
-                  selectedIcon: Badge(
-                    isLabelVisible: isCurrentlyLive,
-                    backgroundColor: AppColors.error,
-                    smallSize: 8,
-                    child: const Icon(Icons.calendar_today_rounded),
-                  ),
-                  label: "Classes",
-                  tooltip: "Upcoming Classes",
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.person_outline_rounded),
-                  selectedIcon: Icon(Icons.person_rounded),
-                  label: "Profile",
-                  tooltip: "Student Profile",
-                ),
-              ],
-            ),
+          // Studio-Grade Floating Island Navigation Bar
+          bottomNavigationBar: AppFloatingIslandNav(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: _onTabTapped,
+            destinations: [
+              const AppNavDestination(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home_rounded,
+                label: "Home",
+              ),
+              const AppNavDestination(
+                icon: Icons.menu_book_outlined,
+                selectedIcon: Icons.menu_book_rounded,
+                label: "Study",
+              ),
+              AppNavDestination(
+                icon: Icons.calendar_today_outlined,
+                selectedIcon: Icons.calendar_today_rounded,
+                label: "Classes",
+                isBadgeVisible: isCurrentlyLive,
+                badgeText: "LIVE",
+              ),
+              const AppNavDestination(
+                icon: Icons.person_outline_rounded,
+                selectedIcon: Icons.person_rounded,
+                label: "Profile",
+              ),
+            ],
           ),
         );
       },

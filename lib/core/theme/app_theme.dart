@@ -4,7 +4,8 @@ import 'app_component_theme.dart';
 import 'app_typography.dart';
 
 /// Central theme architecture for SSC Study Hub.
-/// Generates full Material 3 light and dark themes using semantic color tokens.
+/// Engineered for Dark-First studio aesthetics (Linear/Vercel inspired).
+/// Follows shadow-free tint elevations and WCAG AA contrast standards.
 class AppTheme {
   static ThemeData light({bool useGoogleFonts = true}) {
     final colorScheme = _lightColorScheme();
@@ -45,7 +46,7 @@ class AppTheme {
       bottomSheetTheme: AppComponentTheme.bottomSheetTheme(
         backgroundColor: AppColors.surfaceLowLight,
       ),
-      dividerColor: AppColors.surfaceHighLight,
+      dividerColor: AppColors.dividerLight,
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -54,7 +55,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: colorScheme.onSurface),
         titleTextStyle: textTheme.headlineSmall?.copyWith(
           color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -74,32 +75,32 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.surface,
       textTheme: textTheme,
       cardTheme: AppComponentTheme.cardTheme(
-        color: AppColors.surfaceLowDark,
-        borderColor: AppColors.surfaceMidDark,
+        color: AppColors.surfaceDark,
+        borderColor: AppColors.dividerDark,
       ),
       filledButtonTheme: AppComponentTheme.filledButtonTheme(colorScheme),
       outlinedButtonTheme: AppComponentTheme.outlinedButtonTheme(colorScheme),
       textButtonTheme: AppComponentTheme.textButtonTheme(colorScheme),
       inputDecorationTheme: AppComponentTheme.inputDecorationTheme(
-        fillColor: AppColors.surfaceLowDark,
-        borderColor: AppColors.surfaceMidDark,
+        fillColor: AppColors.surfaceVariantDark,
+        borderColor: AppColors.dividerDark,
         colorScheme: colorScheme,
       ),
       chipTheme: AppComponentTheme.chipTheme(
-        backgroundColor: AppColors.surfaceMidDark,
-        borderColor: AppColors.surfaceHighDark,
+        backgroundColor: AppColors.surfaceVariantDark,
+        borderColor: AppColors.dividerDark,
         colorScheme: colorScheme,
       ),
       navigationBarTheme: AppComponentTheme.navigationBarTheme(colorScheme),
       dialogTheme: AppComponentTheme.dialogTheme(
-        backgroundColor: AppColors.surfaceLowDark,
-        borderColor: AppColors.surfaceMidDark,
+        backgroundColor: AppColors.surfaceDark,
+        borderColor: AppColors.dividerDark,
       ),
       snackBarTheme: AppComponentTheme.snackBarTheme(colorScheme),
       bottomSheetTheme: AppComponentTheme.bottomSheetTheme(
-        backgroundColor: AppColors.surfaceLowDark,
+        backgroundColor: AppColors.surfaceDark,
       ),
-      dividerColor: AppColors.surfaceMidDark,
+      dividerColor: AppColors.dividerDark,
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -108,7 +109,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: colorScheme.onSurface),
         titleTextStyle: textTheme.headlineSmall?.copyWith(
           color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -116,38 +117,38 @@ class AppTheme {
 
   static ColorScheme _lightColorScheme() {
     return ColorScheme.fromSeed(
-      seedColor: AppColors.seedColor,
+      seedColor: AppColors.primaryAccent,
       brightness: Brightness.light,
     ).copyWith(
-      surface: AppColors.surfaceLowestLight,
-      surfaceContainerLowest: AppColors.surfaceLowestLight,
-      surfaceContainerLow: AppColors.surfaceLowLight,
-      surfaceContainer: AppColors.surfaceMidLight,
+      surface: AppColors.backgroundLight,
+      surfaceContainerLowest: AppColors.backgroundLight,
+      surfaceContainerLow: AppColors.surfaceLight,
+      surfaceContainer: AppColors.surfaceVariantLight,
       surfaceContainerHigh: AppColors.surfaceHighLight,
       surfaceContainerHighest: AppColors.surfaceHighestLight,
       onSurface: AppColors.textPrimaryLight,
       onSurfaceVariant: AppColors.textSecondaryLight,
       outline: AppColors.surfaceHighLight,
-      outlineVariant: AppColors.surfaceMidLight,
+      outlineVariant: AppColors.dividerLight,
       error: AppColors.error,
     );
   }
 
   static ColorScheme _darkColorScheme() {
     return ColorScheme.fromSeed(
-      seedColor: AppColors.seedColor,
+      seedColor: AppColors.primaryAccent,
       brightness: Brightness.dark,
     ).copyWith(
-      surface: AppColors.surfaceLowestDark,
-      surfaceContainerLowest: AppColors.surfaceLowestDark,
-      surfaceContainerLow: AppColors.surfaceLowDark,
-      surfaceContainer: AppColors.surfaceMidDark,
+      surface: AppColors.backgroundDark,
+      surfaceContainerLowest: AppColors.backgroundDark,
+      surfaceContainerLow: AppColors.surfaceDark,
+      surfaceContainer: AppColors.surfaceVariantDark,
       surfaceContainerHigh: AppColors.surfaceHighDark,
       surfaceContainerHighest: AppColors.surfaceHighestDark,
       onSurface: AppColors.textPrimaryDark,
       onSurfaceVariant: AppColors.textSecondaryDark,
-      outline: AppColors.surfaceMidDark,
-      outlineVariant: AppColors.surfaceHighDark,
+      outline: AppColors.surfaceVariantDark,
+      outlineVariant: AppColors.dividerDark,
       error: AppColors.error,
     );
   }

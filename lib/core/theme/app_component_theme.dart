@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'app_spacing.dart';
 
-/// Component-level theme definitions for Material 3.
-/// Ensures consistent borders, paddings, tap targets, and styling across light and dark modes.
+/// Component-level theme definitions for Material 3 + Studio design standards.
+/// - Cards use radiusLg (16dp), zero elevation with tint/border.
+/// - Chips use radiusPill (999dp).
+/// - Modals/Sheets use radiusXl (24dp).
 class AppComponentTheme {
   static CardThemeData cardTheme({
     required Color color,
@@ -14,7 +16,7 @@ class AppComponentTheme {
       color: color,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         side: BorderSide(color: borderColor, width: 1),
       ),
     );
@@ -23,16 +25,16 @@ class AppComponentTheme {
   static FilledButtonThemeData filledButtonTheme(ColorScheme colorScheme) {
     return FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(48, 48), // WCAG minimum tap target
+        minimumSize: const Size(48, 52), // High-touch ergonomics
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl,
+          horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
         ),
         textStyle: const TextStyle(
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.1,
         ),
@@ -43,17 +45,17 @@ class AppComponentTheme {
   static OutlinedButtonThemeData outlinedButtonTheme(ColorScheme colorScheme) {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size(48, 48),
+        minimumSize: const Size(48, 52),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl,
+          horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
         side: BorderSide(color: colorScheme.outline, width: 1.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
         ),
         textStyle: const TextStyle(
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.1,
         ),
@@ -64,9 +66,9 @@ class AppComponentTheme {
   static TextButtonThemeData textButtonTheme(ColorScheme colorScheme) {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
-        minimumSize: const Size(48, 48),
+        minimumSize: const Size(44, 44),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
+          horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
         ),
         shape: RoundedRectangleBorder(
@@ -90,27 +92,27 @@ class AppComponentTheme {
       filled: true,
       fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
+        horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        borderSide: BorderSide(color: borderColor, width: 1),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        borderSide: BorderSide(color: borderColor, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        borderSide: BorderSide(color: borderColor, width: 1),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        borderSide: BorderSide(color: borderColor, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         borderSide: BorderSide(color: colorScheme.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         borderSide: BorderSide(color: colorScheme.error, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         borderSide: BorderSide(color: colorScheme.error, width: 2),
       ),
       labelStyle: TextStyle(
@@ -133,14 +135,14 @@ class AppComponentTheme {
       backgroundColor: backgroundColor,
       side: BorderSide(color: borderColor, width: 1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
       ),
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
+        horizontal: AppSpacing.md,
         vertical: AppSpacing.xs,
       ),
       labelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: FontWeight.w500,
         color: colorScheme.onSurface,
       ),
@@ -152,11 +154,11 @@ class AppComponentTheme {
       height: 64,
       elevation: 0,
       backgroundColor: colorScheme.surface,
-      indicatorColor: colorScheme.primaryContainer,
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.15),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return IconThemeData(color: colorScheme.onPrimaryContainer, size: 24);
+          return IconThemeData(color: colorScheme.primary, size: 24);
         }
         return IconThemeData(color: colorScheme.onSurfaceVariant, size: 24);
       }),
@@ -182,7 +184,7 @@ class AppComponentTheme {
     required Color borderColor,
   }) {
     return DialogThemeData(
-      elevation: 3,
+      elevation: 0,
       backgroundColor: backgroundColor,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(

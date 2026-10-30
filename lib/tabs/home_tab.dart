@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/app_widgets.dart';
 import '../screens/live_class_room.dart';
@@ -103,6 +104,7 @@ class _HomeTabState extends State<HomeTab> {
                     AppAvatar(
                       name: widget.studentName,
                       size: 44,
+                      hasGradientRing: true,
                     ),
                   ],
                 ),
@@ -514,7 +516,7 @@ class _HomeTabState extends State<HomeTab> {
   Widget _buildStandbyCard(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppCard(
+    return AppCard.primary(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         children: [
@@ -524,7 +526,7 @@ class _HomeTabState extends State<HomeTab> {
               Text(
                 "Live Classroom",
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const AppBadge(
@@ -571,7 +573,7 @@ class _HomeTabState extends State<HomeTab> {
   }) {
     final theme = Theme.of(context);
 
-    return AppCard(
+    return AppCard.data(
       onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -580,20 +582,20 @@ class _HomeTabState extends State<HomeTab> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+              color: AppColors.primaryAccent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
               icon,
               size: 20,
-              color: theme.colorScheme.primary,
+              color: AppColors.primaryAccent,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

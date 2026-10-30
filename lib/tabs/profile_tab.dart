@@ -24,6 +24,9 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   late String _currentName;
+  int _selectedCategoryIndex = 0;
+
+  final List<String> _categories = ["Academics", "Diagnostics", "Settings"];
 
   @override
   void initState() {
@@ -132,6 +135,7 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return SafeArea(
       bottom: false,
@@ -149,10 +153,11 @@ class _ProfileTabState extends State<ProfileTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. STUDENT AVATAR & NAME
+                // 1. STUDENT AVATAR WITH GRADIENT RING
                 AppAvatar(
                   name: _currentName,
-                  size: 80,
+                  size: 84,
+                  hasGradientRing: true,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
@@ -162,28 +167,31 @@ class _ProfileTabState extends State<ProfileTab> {
                       child: Text(
                         _currentName,
                         style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    IconButton(
-                      icon: const Icon(Icons.edit_rounded, size: 16),
-                      tooltip: "Edit name",
+                    AppIconButton(
+                      icon: Icons.edit_rounded,
+                      size: 16,
+                      tooltip: "Edit student name",
                       onPressed: _showEditNameDialog,
                     ),
                   ],
                 ),
+                const SizedBox(height: 2),
                 const AppBadge(
                   label: "SSC 10th Board Student",
                   variant: AppBadgeVariant.info,
                 ),
                 const SizedBox(height: AppSpacing.xl),
 
-                // 2. QUICK STATS
-                AppCard(
+                // 2. 3-COLUMN STATS ROW WITH ANIMATED COUNT-UP
+                AppCard.data(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppSpacing.md,
                     horizontal: AppSpacing.lg,
@@ -191,218 +199,279 @@ class _ProfileTabState extends State<ProfileTab> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem(context, "Board", "Maharashtra", Icons.school_rounded),
+                      _buildAnimatedStatItem("Attendance", 100, "%", Icons.verified_rounded, isAccent: true),
                       const AppDivider(isVertical: true),
-                      _buildStatItem(context, "Class", "10th Semi", Icons.menu_book_rounded),
+                      _buildAnimatedStatItem("Curriculum", 12, " Subjects", Icons.menu_book_rounded),
                       const AppDivider(isVertical: true),
-                      _buildStatItem(context, "Status", "Active", Icons.verified_rounded, isAccent: true),
+                      _buildAnimatedStatItem("Grade Class", 10, "th Semi", Icons.school_rounded),
                     ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+
+                // 3. CUSTOM CATEGORY TAB BAR (Not default TabBar)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceMidLight,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                    border: Border.all(
+                      color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                    ),
+                  ),
+                  child: Row(
+                    children: List.generate(_categories.length, (index) {
+                      final isSelected = _selectedCategoryIndex == index;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _selectedCategoryIndex = index);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOutCubic,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (isDark ? AppColors.surfaceDark : Colors.white)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _categories[index],
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.primaryAccent
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
-                // 3. NOTIFICATION & SYNC DIAGNOSTICS
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.notifications_active_rounded,
-                                size: 18,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Text(
-                                'Live Class Alerts',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: NotificationService.isRegisteredNotifier,
-                            builder: (context, isRegistered, _) {
-                              return AppBadge(
-                                label: isRegistered ? "Connected" : "Syncing",
-                                variant: isRegistered
-                                    ? AppBadgeVariant.success
-                                    : AppBadgeVariant.warning,
-                                icon: Icon(
-                                  isRegistered ? Icons.check_circle_rounded : Icons.sync_rounded,
-                                  size: 10,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        "Receive instant alerts when the teacher starts a live class or makes an important study announcement.",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                // 4. CATEGORY CONTENT VIEWS
+                if (_selectedCategoryIndex == 0) ...[
+                  // Academics view
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSectionHeader(
+                          title: "Direct Learning Portals",
+                          padding: EdgeInsets.zero,
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppButton.outlined(
-                              label: "Test Alert",
-                              icon: const Icon(Icons.send_rounded, size: 14),
-                              onPressed: () async {
-                                HapticFeedback.lightImpact();
-                                await NotificationService().showNativeNotificationFromDart(
-                                  title: "SSC Study Hub Pro 🔔",
-                                  body: "Device notification system is 100% active and connected!",
+                        const SizedBox(height: AppSpacing.md),
+                        InkWell(
+                          onTap: () => _launchExternalUrl("https://books.ebalbharati.in/"),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                            child: _buildInfoRow(
+                              context,
+                              Icons.library_books_rounded,
+                              'Official eBalbharti Library',
+                              'Maharashtra State Board Portal',
+                              trailing: const Icon(Icons.open_in_new_rounded, size: 16),
+                            ),
+                          ),
+                        ),
+                        const AppDivider(),
+                        _buildInfoRow(
+                          context,
+                          Icons.menu_book_rounded,
+                          'Academic Syllabus',
+                          'Maharashtra State SSC 10th Standard',
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (_selectedCategoryIndex == 1) ...[
+                  // Diagnostics view
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.notifications_active_rounded,
+                                  size: 18,
+                                  color: AppColors.primaryAccent,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Text(
+                                  'Live Class Alerts',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: NotificationService.isRegisteredNotifier,
+                              builder: (context, isRegistered, _) {
+                                return AppBadge(
+                                  label: isRegistered ? "Connected" : "Syncing",
+                                  variant: isRegistered
+                                      ? AppBadgeVariant.success
+                                      : AppBadgeVariant.warning,
+                                  icon: Icon(
+                                    isRegistered ? Icons.check_circle_rounded : Icons.sync_rounded,
+                                    size: 10,
+                                  ),
                                 );
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Test notification sent to phone drawer!"),
-                                      duration: Duration(seconds: 3),
-                                    ),
-                                  );
-                                }
                               },
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          "Receive instant alerts when the teacher starts a live class or makes an important study announcement.",
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: AppButton.filled(
-                              label: "Sync Token",
-                              icon: const Icon(Icons.cloud_sync_rounded, size: 15),
-                              onPressed: () async {
-                                HapticFeedback.mediumImpact();
-                                await NotificationService().syncTokenAndTopics(maxRetries: 5);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Device token successfully registered in cloud!"),
-                                      duration: Duration(seconds: 3),
-                                    ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppButton.outlined(
+                                label: "Test Alert",
+                                icon: const Icon(Icons.send_rounded, size: 14),
+                                onPressed: () async {
+                                  HapticFeedback.lightImpact();
+                                  await NotificationService().showNativeNotificationFromDart(
+                                    title: "SSC Study Hub Pro 🔔",
+                                    body: "Device notification system is 100% active and connected!",
                                   );
-                                }
-                              },
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Test notification sent to phone drawer!"),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: AppButton.filled(
+                                label: "Sync Token",
+                                icon: const Icon(Icons.cloud_sync_rounded, size: 15),
+                                onPressed: () async {
+                                  HapticFeedback.mediumImpact();
+                                  await NotificationService().syncTokenAndTopics(maxRetries: 5);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Device token successfully registered in cloud!"),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                // 4. LEARNING PORTALS
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.auto_stories_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            'Direct Learning Portals',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                ] else ...[
+                  // Settings / About view
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSectionHeader(
+                          title: "Application Details",
+                          padding: EdgeInsets.zero,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const DeveloperInfoScreen(),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                            child: _buildInfoRow(
+                              context,
+                              Icons.code_rounded,
+                              'Developed By',
+                              'Mr. Naitik Bobade',
+                              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      InkWell(
-                        onTap: () => _launchExternalUrl("https://books.ebalbharati.in/"),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                          child: _buildInfoRow(
-                            context,
-                            Icons.library_books_rounded,
-                            'Official eBalbharti Library',
-                            'Maharashtra State Board Portal',
-                            trailing: const Icon(Icons.open_in_new_rounded, size: 16),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                // 5. APPLICATION INFORMATION
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            'Application Information',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DeveloperInfoScreen(),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                          child: _buildInfoRow(
-                            context,
-                            Icons.code_rounded,
-                            'Developed By',
-                            'Mr. Naitik Bobade',
-                            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                          ),
+                        const AppDivider(),
+                        _buildInfoRow(
+                          context,
+                          Icons.build_circle_rounded,
+                          'Version',
+                          'SSC Study Hub 4.0.0 Pro',
                         ),
-                      ),
-                      const AppDivider(),
-                      _buildInfoRow(
-                        context,
-                        Icons.build_circle_rounded,
-                        'Version',
-                        'SSC Study Hub 4.0.0 Pro',
-                      ),
-                      const AppDivider(),
-                      _buildInfoRow(
-                        context,
-                        Icons.security_rounded,
-                        'Security & Live Sync',
-                        'Secured & Connected',
-                        isSuccess: true,
-                      ),
-                    ],
+                        const AppDivider(),
+                        _buildInfoRow(
+                          context,
+                          Icons.security_rounded,
+                          'Zero-Jank Architecture',
+                          'Active (120fps / Tint Elevations)',
+                          isSuccess: true,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.lg),
+                  // Visual separated destructive button
+                  AppButton.destructive(
+                    label: "Reset Saved Student Name",
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    isFullWidth: true,
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('studentName');
+                      await prefs.remove('student_name');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Student name reset. Restart app to prompt."),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
 
-                const SizedBox(height: AppSpacing.xxxl),
+                // Space for floating island bottom navigation bar
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -411,38 +480,46 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildStatItem(
-    BuildContext context,
+  Widget _buildAnimatedStatItem(
     String label,
-    String value,
+    int targetNumber,
+    String suffix,
     IconData icon, {
     bool isAccent = false,
   }) {
     final theme = Theme.of(context);
 
-    return Column(
-      children: [
-        Icon(
-          icon,
-          size: 18,
-          color: isAccent ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          value,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: isAccent ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: targetNumber.toDouble()),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Column(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isAccent ? AppColors.primaryAccent : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              "${value.toInt()}$suffix",
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: isAccent ? AppColors.primaryAccent : theme.colorScheme.onSurface,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -461,12 +538,12 @@ class _ProfileTabState extends State<ProfileTab> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+            color: AppColors.primaryAccent.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
           child: Icon(
             icon,
-            color: theme.colorScheme.primary,
+            color: AppColors.primaryAccent,
             size: 18,
           ),
         ),

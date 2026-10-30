@@ -131,26 +131,17 @@ class _DeveloperInfoScreenState extends State<DeveloperInfoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.primaryContainer,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.code_rounded,
-                  size: 44,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
+            const AppAvatar(
+              name: "Naitik Bobade",
+              size: 84,
+              hasGradientRing: true,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               "Mr. Naitik Bobade",
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -195,50 +186,39 @@ class _DeveloperInfoScreenState extends State<DeveloperInfoScreen> {
                     final Color iconColor = styleInfo['color'];
 
                     return RepaintBoundary(
-                      child: AppCard(
+                      child: AppCard.listItem(
                         onTap: () => _launchURL(item['url'] ?? ''),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
+                        accentBarColor: iconColor,
+                        leading: Container(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: iconColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          ),
+                          child: Icon(
+                            iconData,
+                            color: iconColor,
+                            size: 20,
+                          ),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.sm),
-                              decoration: BoxDecoration(
-                                color: iconColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                              ),
-                              child: Icon(
-                                iconData,
-                                color: iconColor,
-                                size: 22,
+                            Text(
+                              item['title'] ?? '',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item['title'] ?? '',
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    item['subtitle'] ?? '',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                            const SizedBox(height: 2),
+                            Text(
+                              item['subtitle'] ?? '',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                           ],
                         ),
                       ),
