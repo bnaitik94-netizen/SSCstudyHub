@@ -1666,10 +1666,13 @@
 
                         <!-- Quick Template Presets -->
                         <div style="margin-bottom: 18px;">
-                            <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">
-                                Quick Presets:
-                            </label>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 0;">
+                                    Quick Presets:
+                                </label>
+                                <span style="font-size: 11px; color: var(--text-muted);">One-click fill or customize</span>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                                 <button type="button" class="btn-preset" onclick="applyNotifPreset('🔴 Live Class Starting Now!', 'Instructor has started the live classroom. Tap JOIN to enter immediately!')">
                                     🔴 Live Class Starting
                                 </button>
@@ -1682,6 +1685,12 @@
                                 <button type="button" class="btn-preset" onclick="applyNotifPreset('📢 Urgent Class Announcement', 'Important update regarding your syllabus schedule and upcoming mock test.')">
                                     📢 Class Notice
                                 </button>
+                                <!-- Customize Notification Button on Quick Presets -->
+                                <button type="button" class="btn-preset" id="btnCustomizePreset" onclick="openCustomizeNotifModal()" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(6, 182, 212, 0.28)); border: 1px solid rgba(99, 102, 241, 0.6); color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(99, 102, 241, 0.3);">
+                                    <span>⚙️ Customize Notification...</span>
+                                </button>
+                                <!-- Dynamic container for saved custom presets -->
+                                <div id="customPresetsContainer" style="display: contents;"></div>
                             </div>
                         </div>
 
@@ -1858,7 +1867,99 @@
         </div>
     </div>
 
-    <!-- ================= MODALS FOR SYLLABUS & QUIZZES ================= -->
+    <!-- ================= MODALS FOR NOTIFICATIONS, SYLLABUS & QUIZZES ================= -->
+
+    <!-- Customize Notification Modal -->
+    <div id="customizeNotifModal" class="modal">
+        <div class="modal-content" style="max-width: 580px;">
+            <span class="modal-close" onclick="closeModal('customizeNotifModal')">&times;</span>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 24px;">⚙️</span>
+                <h2 style="margin: 0;">Customize Notification Preset</h2>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 18px; line-height: 1.4;">
+                Select a template or customize the subject, chapter, timing, and note. Apply to the broadcast form or save as a persistent quick preset.
+            </p>
+
+            <!-- Base Template Selection -->
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; display: block;">
+                    Select Base Preset Type:
+                </label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="cnTemplatePills">
+                    <button type="button" class="btn-preset" id="cnPill_live_now" onclick="selectCnTemplate('live_now')" style="padding: 6px 11px; font-size: 11px;">🔴 Live Class Starting</button>
+                    <button type="button" class="btn-preset" id="cnPill_in_x_mins" onclick="selectCnTemplate('in_x_mins')" style="padding: 6px 11px; font-size: 11px;">⏰ In X Minutes</button>
+                    <button type="button" class="btn-preset" id="cnPill_notes" onclick="selectCnTemplate('notes')" style="padding: 6px 11px; font-size: 11px;">📚 Notes & PDF</button>
+                    <button type="button" class="btn-preset" id="cnPill_notice" onclick="selectCnTemplate('notice')" style="padding: 6px 11px; font-size: 11px;">📢 Urgent Notice</button>
+                    <button type="button" class="btn-preset" id="cnPill_test_revision" onclick="selectCnTemplate('test_revision')" style="padding: 6px 11px; font-size: 11px;">🎯 Revision & Test</button>
+                    <button type="button" class="btn-preset" id="cnPill_custom" onclick="selectCnTemplate('custom')" style="padding: 6px 11px; font-size: 11px;">✍️ Freeform Custom</button>
+                </div>
+            </div>
+
+            <!-- Customization Inputs Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Subject / Course</label>
+                    <input type="text" id="cnSubjectInput" placeholder="e.g. Science Part 1" oninput="updateCnPreview()">
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px;">
+                        <span onclick="setCnSubject('Science Part 1')" style="font-size: 10px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: #94A3B8;">Science 1</span>
+                        <span onclick="setCnSubject('Mathematics Part 1')" style="font-size: 10px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: #94A3B8;">Math 1</span>
+                        <span onclick="setCnSubject('Mathematics Part 2')" style="font-size: 10px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: #94A3B8;">Math 2</span>
+                        <span onclick="setCnSubject('English')" style="font-size: 10px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: #94A3B8;">English</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Chapter / Topic</label>
+                    <input type="text" id="cnChapterInput" placeholder="e.g. Chapter 3 Gravitation" oninput="updateCnPreview()">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Schedule / Timing</label>
+                    <input type="text" id="cnTimingInput" placeholder="e.g. Starting Now / at 7:30 PM" oninput="updateCnPreview()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Preset Button Label (For saving)</label>
+                    <input type="text" id="cnPresetNameInput" placeholder="e.g. 🔬 Science Ch 3">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="font-size: 12px;">Custom Teacher Note / Instructions</label>
+                <textarea id="cnNoteInput" rows="2" placeholder="e.g. Keep your notebook and pen ready. Important board questions will be solved!" oninput="updateCnPreview()"></textarea>
+            </div>
+
+            <!-- Live Notification Preview Box -->
+            <div style="margin-bottom: 18px; background: rgba(10, 14, 23, 0.95); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--accent-cyan); font-weight: 800; display: flex; align-items: center; gap: 5px;">
+                        <span>📱</span> Real-Time Push Preview
+                    </span>
+                    <span style="font-size: 10px; color: var(--text-muted);">SSC Study Hub • Just now</span>
+                </div>
+                <div id="cnPreviewTitle" style="font-size: 13px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px;">
+                    🔴 Live Class Starting Now!
+                </div>
+                <div id="cnPreviewBody" style="font-size: 12px; color: #94A3B8; line-height: 1.4;">
+                    Instructor has started the live classroom. Tap JOIN to enter immediately!
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn-cyan" style="flex: 2; padding: 12px; font-weight: 800;" onclick="applyCustomizedNotification()">
+                    📋 Apply to Notification Form
+                </button>
+                <button type="button" class="btn-green" style="flex: 1.5; padding: 12px; font-weight: 700;" onclick="saveCustomPreset()">
+                    💾 Save as Preset
+                </button>
+                <button type="button" class="btn-red" style="padding: 12px 16px;" onclick="closeModal('customizeNotifModal')">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Add Subject Modal -->
     <div id="subjectModal" class="modal">
@@ -2200,8 +2301,278 @@
         }
 
         function applyNotifPreset(title, body) {
-            document.getElementById("notifTitle").value = title;
-            document.getElementById("notifBody").value = body;
+            const titleEl = document.getElementById("notifTitle");
+            const bodyEl = document.getElementById("notifBody");
+            if (titleEl) titleEl.value = title;
+            if (bodyEl) bodyEl.value = body;
+
+            // Visual feedback highlight
+            if (titleEl && bodyEl) {
+                titleEl.style.transition = "box-shadow 0.3s ease, border-color 0.3s ease";
+                bodyEl.style.transition = "box-shadow 0.3s ease, border-color 0.3s ease";
+                titleEl.style.borderColor = "#00F2FE";
+                bodyEl.style.borderColor = "#00F2FE";
+                titleEl.style.boxShadow = "0 0 12px rgba(0, 242, 254, 0.4)";
+                bodyEl.style.boxShadow = "0 0 12px rgba(0, 242, 254, 0.4)";
+                setTimeout(() => {
+                    titleEl.style.borderColor = "";
+                    bodyEl.style.borderColor = "";
+                    titleEl.style.boxShadow = "";
+                    bodyEl.style.boxShadow = "";
+                }, 800);
+            }
+        }
+
+        // ==========================================
+        // CUSTOMIZE NOTIFICATION PRESET BUILDER
+        // ==========================================
+        let currentCnTemplate = 'live_now';
+
+        function openCustomizeNotifModal() {
+            const currentTitle = document.getElementById("notifTitle")?.value.trim() || "";
+            const currentBody = document.getElementById("notifBody")?.value.trim() || "";
+
+            // If user already typed into the form, pre-fill as custom
+            if (currentTitle || currentBody) {
+                const previewTitleEl = document.getElementById("cnPreviewTitle");
+                const previewBodyEl = document.getElementById("cnPreviewBody");
+                if (previewTitleEl) previewTitleEl.textContent = currentTitle || "Notification Headline";
+                if (previewBodyEl) previewBodyEl.textContent = currentBody || "Notification body text...";
+            }
+
+            document.getElementById("customizeNotifModal").style.display = "block";
+            selectCnTemplate(currentCnTemplate || 'live_now');
+        }
+
+        function selectCnTemplate(templateKey) {
+            currentCnTemplate = templateKey;
+            
+            // Update active pill styling
+            const pillContainer = document.getElementById("cnTemplatePills");
+            if (pillContainer) {
+                const buttons = pillContainer.querySelectorAll(".btn-preset");
+                buttons.forEach(btn => {
+                    btn.style.borderColor = "";
+                    btn.style.background = "";
+                });
+            }
+
+            const activeBtn = document.getElementById("cnPill_" + templateKey);
+            if (activeBtn) {
+                activeBtn.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(6, 182, 212, 0.35))";
+                activeBtn.style.borderColor = "var(--accent-cyan)";
+            }
+
+            // Set sensible defaults if fields are empty
+            const timeInput = document.getElementById("cnTimingInput");
+            const noteInput = document.getElementById("cnNoteInput");
+
+            if (timeInput && noteInput) {
+                if (templateKey === 'live_now') {
+                    if (!timeInput.value) timeInput.value = "Starting Now";
+                    if (!noteInput.value) noteInput.value = "Instructor has started the live classroom. Tap JOIN to enter immediately!";
+                } else if (templateKey === 'in_x_mins') {
+                    timeInput.value = "In 15 Minutes";
+                    noteInput.value = "Get your notebook and pen ready. Chapter revision starts in 15 mins!";
+                } else if (templateKey === 'notes') {
+                    timeInput.value = "Available Now";
+                    noteInput.value = "New handwritten notes, question bank, and practice PDF are now available!";
+                } else if (templateKey === 'notice') {
+                    timeInput.value = "Important";
+                    noteInput.value = "Crucial update regarding your syllabus schedule and upcoming mock test.";
+                } else if (templateKey === 'test_revision') {
+                    timeInput.value = "Today at 7:00 PM";
+                    noteInput.value = "Full Chapter Revision & Board Exam Model Test paper practice!";
+                }
+            }
+
+            updateCnPreview();
+        }
+
+        function setCnSubject(subjName) {
+            const input = document.getElementById("cnSubjectInput");
+            if (input) {
+                input.value = subjName;
+                updateCnPreview();
+            }
+        }
+
+        function updateCnPreview() {
+            const subject = document.getElementById("cnSubjectInput")?.value.trim() || "";
+            const chapter = document.getElementById("cnChapterInput")?.value.trim() || "";
+            const timing = document.getElementById("cnTimingInput")?.value.trim() || "";
+            const note = document.getElementById("cnNoteInput")?.value.trim() || "";
+
+            let title = "";
+            let body = "";
+
+            const subjectPart = subject ? ` [${subject}]` : "";
+
+            switch (currentCnTemplate) {
+                case 'live_now':
+                    title = `🔴 Live Class Starting Now!${subjectPart}`;
+                    body = chapter
+                        ? `Live lecture started on ${chapter}. ${note || 'Tap JOIN to enter immediately!'}`
+                        : (note || 'Instructor has started the live classroom. Tap JOIN to enter immediately!');
+                    break;
+                case 'in_x_mins':
+                    const timeStr = timing || "15 Minutes";
+                    title = `⏰ Live Class ${timeStr.toLowerCase().includes('in') ? timeStr : 'in ' + timeStr}!${subjectPart}`;
+                    body = chapter
+                        ? `Revision session on ${chapter} begins ${timeStr}. ${note || 'Get ready!'}`
+                        : `Class begins ${timeStr}. ${note || 'Get your notebook ready!'}`;
+                    break;
+                case 'notes':
+                    title = `📚 New Study Notes Uploaded!${subjectPart}`;
+                    body = chapter
+                        ? `Notes and practice PDF for ${chapter} are ready in Study Material tab. ${note}`
+                        : (note || 'New handwritten notes, question bank, and practice PDF are now available!');
+                    break;
+                case 'notice':
+                    title = `📢 Urgent Class Announcement${subjectPart}`;
+                    body = (chapter ? `Regarding ${chapter}: ` : "") + (note || 'Important update regarding your syllabus schedule and upcoming mock test.');
+                    break;
+                case 'test_revision':
+                    title = `🎯 Target SSC Revision & Test!${subjectPart}`;
+                    body = (chapter ? `Session on ${chapter}. ` : "") + (note || `Scheduled for ${timing || 'today'}. Complete attendance required!`);
+                    break;
+                case 'custom':
+                default:
+                    title = subject ? `📢 ${subject}` : "📢 SSC Study Hub Official Announcement";
+                    if (chapter) title += `: ${chapter}`;
+                    body = note || (chapter ? `Important lesson on ${chapter}. Join on time!` : 'Important announcement from your instructor.');
+                    break;
+            }
+
+            const previewTitleEl = document.getElementById("cnPreviewTitle");
+            const previewBodyEl = document.getElementById("cnPreviewBody");
+            if (previewTitleEl) previewTitleEl.textContent = title;
+            if (previewBodyEl) previewBodyEl.textContent = body;
+        }
+
+        function applyCustomizedNotification() {
+            const previewTitle = document.getElementById("cnPreviewTitle")?.textContent.trim() || "";
+            const previewBody = document.getElementById("cnPreviewBody")?.textContent.trim() || "";
+
+            if (!previewTitle || !previewBody) {
+                alert("Please configure a valid notification title and body!");
+                return;
+            }
+
+            applyNotifPreset(previewTitle, previewBody);
+            closeModal('customizeNotifModal');
+
+            // Smooth scroll to notification input
+            const target = document.getElementById("notifTitle");
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.focus();
+            }
+        }
+
+        function saveCustomPreset() {
+            const previewTitle = document.getElementById("cnPreviewTitle")?.textContent.trim() || "";
+            const previewBody = document.getElementById("cnPreviewBody")?.textContent.trim() || "";
+            let presetName = document.getElementById("cnPresetNameInput")?.value.trim() || "";
+
+            if (!previewTitle || !previewBody) {
+                alert("Please fill in some details first to create a preset!");
+                return;
+            }
+
+            if (!presetName) {
+                const subject = document.getElementById("cnSubjectInput")?.value.trim();
+                const chapter = document.getElementById("cnChapterInput")?.value.trim();
+                presetName = subject ? `⭐ ${subject}` : (chapter ? `⭐ ${chapter}` : `⭐ Custom Preset`);
+            }
+
+            let presets = [];
+            try {
+                presets = JSON.parse(localStorage.getItem('ssc_custom_notif_presets') || '[]');
+            } catch (e) {
+                presets = [];
+            }
+
+            presets.push({
+                id: Date.now(),
+                name: presetName,
+                title: previewTitle,
+                body: previewBody
+            });
+
+            localStorage.setItem('ssc_custom_notif_presets', JSON.stringify(presets));
+            renderCustomPresets();
+            applyCustomizedNotification();
+
+            alert(`✅ Preset "${presetName}" saved successfully!\nIt is now accessible directly on your Quick Presets bar.`);
+        }
+
+        function renderCustomPresets() {
+            const container = document.getElementById("customPresetsContainer");
+            if (!container) return;
+
+            let presets = [];
+            try {
+                presets = JSON.parse(localStorage.getItem('ssc_custom_notif_presets') || '[]');
+            } catch (e) {
+                presets = [];
+            }
+
+            container.innerHTML = "";
+
+            presets.forEach((preset, index) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "btn-preset";
+                btn.style.background = "rgba(139, 92, 246, 0.18)";
+                btn.style.borderColor = "rgba(139, 92, 246, 0.4)";
+                btn.style.color = "#E0E7FF";
+                btn.style.display = "inline-flex";
+                btn.style.alignItems = "center";
+                btn.style.gap = "6px";
+                btn.title = `Click to load: ${preset.title}`;
+
+                // Safe escaping for quotes
+                const escapedTitle = preset.title.replace(/'/g, "\\'");
+                const escapedBody = preset.body.replace(/'/g, "\\'");
+
+                btn.setAttribute("onclick", `applyNotifPreset('${escapedTitle}', '${escapedBody}')`);
+
+                const titleSpan = document.createElement("span");
+                titleSpan.textContent = preset.name;
+                btn.appendChild(titleSpan);
+
+                const delBtn = document.createElement("span");
+                delBtn.innerHTML = "&times;";
+                delBtn.title = "Delete custom preset";
+                delBtn.style.opacity = "0.6";
+                delBtn.style.fontSize = "13px";
+                delBtn.style.fontWeight = "bold";
+                delBtn.style.cursor = "pointer";
+                delBtn.style.marginLeft = "4px";
+                delBtn.style.padding = "0 3px";
+                delBtn.onmouseover = () => delBtn.style.opacity = "1";
+                delBtn.onmouseout = () => delBtn.style.opacity = "0.6";
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteCustomPreset(index);
+                };
+
+                btn.appendChild(delBtn);
+                container.appendChild(btn);
+            });
+        }
+
+        function deleteCustomPreset(index) {
+            if (!confirm("Are you sure you want to remove this saved custom preset?")) return;
+            try {
+                let presets = JSON.parse(localStorage.getItem('ssc_custom_notif_presets') || '[]');
+                presets.splice(index, 1);
+                localStorage.setItem('ssc_custom_notif_presets', JSON.stringify(presets));
+                renderCustomPresets();
+            } catch (e) {
+                console.error("Error deleting custom preset:", e);
+            }
         }
 
         async function sendCustomNotification() {
@@ -2591,6 +2962,7 @@
         }
 
         function initAdminData() {
+            renderCustomPresets();
             // Live Status Sync
             db.collection("live_session").doc("current").onSnapshot(
                 (doc) => {
@@ -3284,6 +3656,9 @@
                 event.target.style.display = "none";
             }
         };
+
+        // Render saved custom presets on startup
+        try { renderCustomPresets(); } catch(e) {}
     </script>
 </body>
 </html>
