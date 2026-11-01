@@ -859,11 +859,11 @@ class _LiveClassRoomState extends State<LiveClassRoom>
           Container(
           padding: const EdgeInsets.symmetric(
               horizontal: 16, vertical: 10),
-          decoration: const BoxDecoration(
-            color: AppColors.surfaceCard,
+          decoration: BoxDecoration(
+            color: const Color(0xFF162544),
             border: Border(
               bottom: BorderSide(
-                color: AppColors.surfaceCardBorder,
+                color: Colors.white.withValues(alpha: 0.12),
                 width: 1,
               ),
             ),
@@ -932,7 +932,7 @@ class _LiveClassRoomState extends State<LiveClassRoom>
 
         // Liquid Tabs (Live Chat / Ask Doubts)
         Container(
-          color: AppColors.surfaceCard,
+          color: const Color(0xFF162544),
           child: Row(
             children: [
               Expanded(

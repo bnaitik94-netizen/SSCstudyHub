@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/developer_info_screen.dart';
-import '../core/theme/app_colors.dart';
-import '../core/theme/app_spacing.dart';
-import '../core/widgets/app_widgets.dart';
+import '../utils/app_colors.dart';
 import '../services/notification_service.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -24,9 +23,6 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   late String _currentName;
-  int _selectedCategoryIndex = 0;
-
-  final List<String> _categories = ["Academics", "Diagnostics", "Settings"];
 
   @override
   void initState() {
@@ -45,50 +41,90 @@ class _ProfileTabState extends State<ProfileTab> {
   void _showEditNameDialog() {
     HapticFeedback.lightImpact();
     final textController = TextEditingController(text: _currentName);
-    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Edit Student Name"),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Enter your full name as registered for your SSC Maharashtra Board studies:",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              AppTextField(
-                controller: textController,
-                autofocus: true,
-                label: "Student Name",
-                hint: "e.g. Naitik Patil",
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return "Name cannot be empty";
-                  }
-                  return null;
-                },
-              ),
-            ],
+        backgroundColor: const Color(0xFF162544),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: AppColors.accent.withValues(alpha: 0.35),
+            width: 1.2,
           ),
         ),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_rounded, color: AppColors.accent, size: 20),
+            SizedBox(width: 8),
+            Text(
+              "Edit Student Name",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Enter your full name as registered for your SSC Maharashtra Board studies:",
+              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: textController,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.black.withValues(alpha: 0.3),
+                hintText: "Your Name",
+                hintStyle: const TextStyle(color: Colors.white38),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.15),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: AppColors.accent,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
-          AppButton.text(
-            label: "Cancel",
+          TextButton(
             onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancel", style: TextStyle(color: Colors.white60)),
           ),
-          AppButton.filled(
-            label: "Save",
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             onPressed: () async {
-              if (formKey.currentState?.validate() ?? false) {
-                final newName = textController.text.trim();
+              final newName = textController.text.trim();
+              if (newName.isNotEmpty) {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('studentName', newName);
                 await prefs.setString('student_name', newName);
@@ -102,12 +138,16 @@ class _ProfileTabState extends State<ProfileTab> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Name updated successfully!"),
+                      backgroundColor: AppColors.primary,
+                      behavior: SnackBarBehavior.floating,
                       duration: Duration(seconds: 2),
                     ),
                   );
                 }
               }
             },
+            child: const Text("Save Name",
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -134,9 +174,6 @@ class _ProfileTabState extends State<ProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return SafeArea(
       bottom: false,
       child: Center(
@@ -144,426 +181,505 @@ class _ProfileTabState extends State<ProfileTab> {
           constraints: const BoxConstraints(maxWidth: 760),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(
-              parent: ClampingScrollPhysics(),
+              parent: BouncingScrollPhysics(),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenHorizontal,
-              vertical: AppSpacing.lg,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 12),
+
+            // 🌟 STUDENT AVATAR WITH LIQUID GLOW RING
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.accent],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 46,
+                backgroundColor: const Color(0xFF162544),
+                child: Text(
+                  _currentName.isNotEmpty ? _currentName[0].toUpperCase() : 'S',
+                  style: const TextStyle(
+                    fontSize: 38,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 1. STUDENT AVATAR WITH GRADIENT RING
-                AppAvatar(
-                  name: _currentName,
-                  size: 84,
-                  hasGradientRing: true,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _currentName,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                Flexible(
+                  child: Text(
+                    _currentName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    AppIconButton(
-                      icon: Icons.edit_rounded,
-                      size: 16,
-                      tooltip: "Edit student name",
-                      onPressed: _showEditNameDialog,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                const AppBadge(
-                  label: "SSC 10th Board Student",
-                  variant: AppBadgeVariant.info,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // 2. 3-COLUMN STATS ROW WITH ANIMATED COUNT-UP
-                AppCard.data(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.md,
-                    horizontal: AppSpacing.lg,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: _showEditNameDialog,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.edit_rounded,
+                      size: 14,
+                      color: AppColors.accent,
+                    ),
+                  ),
+                ),
+              ],
+            ).animate().fadeIn().slideY(begin: 0.1),
+
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.4),
+                  width: 1,
+                ),
+              ),
+              child: const Text(
+                "SSC 10th Board Student",
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ).animate().fadeIn(delay: 100.ms),
+
+            const SizedBox(height: 28),
+
+            // 📊 QUICK STATS ROW IN LIQUID GLASS
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              decoration: AppColors.liquidGlassCard,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem("Board", "Maharashtra", Icons.school_rounded),
+                  _buildVerticalDivider(),
+                  _buildStatItem("Class", "10th Semi", Icons.menu_book_rounded),
+                  _buildVerticalDivider(),
+                  _buildStatItem(
+                      "Status", "Pro Active", Icons.verified_rounded,
+                      isAccent: true),
+                ],
+              ),
+            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.08),
+
+            const SizedBox(height: 20),
+
+            // 🔔 NOTIFICATION STATUS & DIAGNOSTICS CARD
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: AppColors.liquidGlassCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildAnimatedStatItem("Attendance", 100, "%", Icons.verified_rounded, isAccent: true),
-                      const AppDivider(isVertical: true),
-                      _buildAnimatedStatItem("Curriculum", 12, " Subjects", Icons.menu_book_rounded),
-                      const AppDivider(isVertical: true),
-                      _buildAnimatedStatItem("Grade Class", 10, "th Semi", Icons.school_rounded),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // 3. CUSTOM CATEGORY TAB BAR (Not default TabBar)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceMidLight,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                    border: Border.all(
-                      color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
-                    ),
-                  ),
-                  child: Row(
-                    children: List.generate(_categories.length, (index) {
-                      final isSelected = _selectedCategoryIndex == index;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            setState(() => _selectedCategoryIndex = index);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOutCubic,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark ? AppColors.surfaceDark : Colors.white)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
+                      const Row(
+                        children: [
+                          Icon(Icons.notifications_active_rounded,
+                              size: 18, color: AppColors.accent),
+                          SizedBox(width: 8),
+                          Text(
+                            'Live Class Alerts',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              _categories[index],
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.primaryAccent
-                                    : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: NotificationService.isRegisteredNotifier,
+                        builder: (context, isRegistered, _) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isRegistered
+                                  ? const Color(0x2610B981)
+                                  : const Color(0x266366F1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isRegistered
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF6366F1),
+                                width: 1,
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                // 4. CATEGORY CONTENT VIEWS
-                if (_selectedCategoryIndex == 0) ...[
-                  // Academics view
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppSectionHeader(
-                          title: "Direct Learning Portals",
-                          padding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        InkWell(
-                          onTap: () => _launchExternalUrl("https://books.ebalbharati.in/"),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                            child: _buildInfoRow(
-                              context,
-                              Icons.library_books_rounded,
-                              'Official eBalbharti Library',
-                              'Maharashtra State Board Portal',
-                              trailing: const Icon(Icons.open_in_new_rounded, size: 16),
-                            ),
-                          ),
-                        ),
-                        const AppDivider(),
-                        _buildInfoRow(
-                          context,
-                          Icons.menu_book_rounded,
-                          'Academic Syllabus',
-                          'Maharashtra State SSC 10th Standard',
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else if (_selectedCategoryIndex == 1) ...[
-                  // Diagnostics view
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.notifications_active_rounded,
-                                  size: 18,
-                                  color: AppColors.primaryAccent,
+                                Icon(
+                                  isRegistered
+                                      ? Icons.check_circle_rounded
+                                      : Icons.sync_rounded,
+                                  size: 13,
+                                  color: isRegistered
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFA5B4FC),
                                 ),
-                                const SizedBox(width: AppSpacing.sm),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Live Class Alerts',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                  isRegistered ? "Connected" : "Syncing",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: isRegistered
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFA5B4FC),
                                   ),
                                 ),
                               ],
                             ),
-                            ValueListenableBuilder<bool>(
-                              valueListenable: NotificationService.isRegisteredNotifier,
-                              builder: (context, isRegistered, _) {
-                                return AppBadge(
-                                  label: isRegistered ? "Connected" : "Syncing",
-                                  variant: isRegistered
-                                      ? AppBadgeVariant.success
-                                      : AppBadgeVariant.warning,
-                                  icon: Icon(
-                                    isRegistered ? Icons.check_circle_rounded : Icons.sync_rounded,
-                                    size: 10,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          "Receive instant alerts when the teacher starts a live class or makes an important study announcement.",
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AppButton.outlined(
-                                label: "Test Alert",
-                                icon: const Icon(Icons.send_rounded, size: 14),
-                                onPressed: () async {
-                                  HapticFeedback.lightImpact();
-                                  await NotificationService().showNativeNotificationFromDart(
-                                    title: "SSC Study Hub Pro 🔔",
-                                    body: "Device notification system is 100% active and connected!",
-                                  );
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Test notification sent to phone drawer!"),
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: AppButton.filled(
-                                label: "Sync Token",
-                                icon: const Icon(Icons.cloud_sync_rounded, size: 15),
-                                onPressed: () async {
-                                  HapticFeedback.mediumImpact();
-                                  await NotificationService().syncTokenAndTopics(maxRetries: 5);
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Device token successfully registered in cloud!"),
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Receive instant alerts when the teacher starts a live class or makes an important study announcement.",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                      height: 1.4,
                     ),
                   ),
-                ] else ...[
-                  // Settings / About view
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppSectionHeader(
-                          title: "Application Details",
-                          padding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DeveloperInfoScreen(),
-                              ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            HapticFeedback.lightImpact();
+                            await NotificationService()
+                                .showNativeNotificationFromDart(
+                              title: "SSC Study Hub Pro 🔔",
+                              body:
+                                  "Device notification system is 100% active and connected!",
                             );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Test notification sent! Check your notification bar."),
+                                  backgroundColor: AppColors.primary,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
                           },
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                            child: _buildInfoRow(
-                              context,
-                              Icons.code_rounded,
-                              'Developed By',
-                              'Mr. Naitik Bobade',
-                              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                          icon: const Icon(Icons.send_rounded, size: 14),
+                          label: const Text(
+                            "Test Alert",
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white24),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
-                        const AppDivider(),
-                        _buildInfoRow(
-                          context,
-                          Icons.build_circle_rounded,
-                          'Version',
-                          'SSC Study Hub 4.0.0 Pro',
-                        ),
-                        const AppDivider(),
-                        _buildInfoRow(
-                          context,
-                          Icons.security_rounded,
-                          'Zero-Jank Architecture',
-                          'Active (120fps / Tint Elevations)',
-                          isSuccess: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  // Visual separated destructive button
-                  AppButton.destructive(
-                    label: "Reset Saved Student Name",
-                    icon: const Icon(Icons.refresh_rounded, size: 16),
-                    isFullWidth: true,
-                    onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove('studentName');
-                      await prefs.remove('student_name');
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Student name reset. Restart app to prompt."),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            HapticFeedback.mediumImpact();
+                            await NotificationService()
+                                .syncTokenAndTopics(maxRetries: 5);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Device token successfully registered in cloud! 🚀"),
+                                  backgroundColor: Color(0xFF10B981),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.cloud_sync_rounded, size: 15),
+                          label: const Text(
+                            "Sync Token",
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w800),
                           ),
-                        );
-                      }
-                    },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+            ).animate().fadeIn(delay: 280.ms).slideY(begin: 0.08),
 
-                // Space for floating island bottom navigation bar
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
+            const SizedBox(height: 20),
+
+            // 📚 QUICK LEARNING ACCESS CARD
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: AppColors.liquidGlassCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.auto_stories_rounded,
+                          size: 18, color: AppColors.accent),
+                      SizedBox(width: 8),
+                      Text(
+                        'Direct Learning Portals',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () =>
+                          _launchExternalUrl("https://books.ebalbharati.in/"),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: _buildInfoRow(
+                          Icons.library_books_rounded,
+                          'Official eBalbharti Library',
+                          'Maharashtra State Board Portal',
+                          trailing: const Icon(
+                            Icons.open_in_new_rounded,
+                            size: 16,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.08),
+
+            const SizedBox(height: 20),
+
+            // ℹ️ APP INFO CARD IN LIQUID GLASS
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: AppColors.liquidGlassCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded,
+                          size: 18, color: AppColors.accent),
+                      SizedBox(width: 8),
+                      Text(
+                        'Application Information',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DeveloperInfoScreen(),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: _buildInfoRow(
+                          Icons.code_rounded,
+                          'Developed By',
+                          'Mr. Naitik Bobade',
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(
+                      height: 1,
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  _buildInfoRow(
+                    Icons.build_circle_rounded,
+                    'Version',
+                    'SSC Study Hub 4.0.0 Pro',
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(
+                      height: 1,
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  _buildInfoRow(
+                    Icons.security_rounded,
+                    'Security & Live Sync',
+                    'Secured & Connected',
+                    isSuccess: true,
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.08),
+
+            const SizedBox(
+                height: 120), // Bottom clearance for liquid glass tab bar
+          ],
+        ),
+      ),
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedStatItem(
-    String label,
-    int targetNumber,
-    String suffix,
-    IconData icon, {
-    bool isAccent = false,
-  }) {
-    final theme = Theme.of(context);
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 36,
+      width: 1,
+      color: Colors.white.withValues(alpha: 0.12),
+    );
+  }
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: targetNumber.toDouble()),
-      duration: const Duration(milliseconds: 650),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Column(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isAccent ? AppColors.primaryAccent : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              "${value.toInt()}$suffix",
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: isAccent ? AppColors.primaryAccent : theme.colorScheme.onSurface,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        );
-      },
+  Widget _buildStatItem(String label, String value, IconData icon,
+      {bool isAccent = false}) {
+    return Column(
+      children: [
+        Icon(icon,
+            size: 18, color: isAccent ? AppColors.accent : Colors.white70),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: isAccent ? AppColors.accent : Colors.white,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white60,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildInfoRow(
-    BuildContext context,
     IconData icon,
     String title,
     String value, {
     bool isSuccess = false,
     Widget? trailing,
   }) {
-    final theme = Theme.of(context);
-
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primaryAccent.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            color: AppColors.primary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.primaryLight.withValues(alpha: 0.25),
+              width: 1,
+            ),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.primaryAccent,
-            size: 18,
-          ),
+          child: Icon(icon, color: AppColors.accent, size: 20),
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isSuccess ? AppColors.success : theme.colorScheme.onSurface,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isSuccess ? AppColors.success : Colors.white,
                 ),
               ),
             ],
