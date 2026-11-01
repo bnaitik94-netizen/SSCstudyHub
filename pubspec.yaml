@@ -29,9 +29,12 @@ dependencies:
   wakelock_plus: ^1.7.0
   connectivity_plus: ^7.3.1
   audioplayers: ^6.7.1
-  permission_handler: ^13.0.2
+  permission_handler: 11.3.1
   jitsi_meet_flutter_sdk: ^13.2.0
   firebase_auth: ^5.7.0
+
+dependency_overrides:
+  permission_handler_android: 12.0.13
 
 dev_dependencies:
   flutter_test:
