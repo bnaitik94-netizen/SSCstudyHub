@@ -3114,6 +3114,17 @@
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
+                // Synchronize instant pre-load live class engine
+                await db.collection("live_lectures").doc("current_live").set({
+                    subject: title,
+                    topic: title,
+                    youtube_url: videoId,
+                    jitsi_room_name: "SSC_Class10_Live",
+                    is_youtube_live: true,
+                    is_live: true,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
                 await broadcastNotification("🔴 Live Class Started!", `Teacher has started: ${title}. Join immediately!`, "live", videoId);
                 alert("🟢 Stream is now LIVE! Notification broadcast sent to all student devices.");
             } catch (err) { alert("Error: " + err.message); }
@@ -3146,6 +3157,11 @@
                     pinnedMessage: "",
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+
+                await db.collection("live_lectures").doc("current_live").set({
+                    is_live: false,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
 
                 alert("🛑 Stream ended and saved to Recorded Classes. Chat cleared for next session.");
             } catch (err) { alert("Error: " + err.message); }

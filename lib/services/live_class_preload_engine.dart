@@ -38,6 +38,7 @@ class LiveClassPreloadEngine extends ChangeNotifier {
   JitsiMeetConferenceOptions? _jitsiConferenceOptions;
   YoutubePlayerController? _youtubeController;
   StreamSubscription<DocumentSnapshot>? _firestoreSubscription;
+  StreamSubscription<DocumentSnapshot>? _legacyFirestoreSubscription;
 
   // ── Getters ──
   String get cachedStudentName => _cachedStudentName;
@@ -119,7 +120,7 @@ class LiveClassPreloadEngine extends ChangeNotifier {
     }
   }
 
-  /// Step C: Persistent Real-time Firestore Listener on live_lectures/current_live
+  /// Step C: Persistent Real-time Firestore Listener on live_lectures/current_live & live_session/current
   void _startFirestoreLiveListener() {
     _firestoreSubscription?.cancel();
     _firestoreSubscription = FirebaseFirestore.instance
@@ -128,12 +129,7 @@ class LiveClassPreloadEngine extends ChangeNotifier {
         .snapshots()
         .listen(
       (doc) {
-        if (!doc.exists) {
-          _isClassLive = false;
-          _cleanupEngines();
-          notifyListeners();
-          return;
-        }
+        if (!doc.exists) return;
 
         final data = doc.data() as Map<String, dynamic>;
         _isClassLive = data['is_live'] == true;
@@ -153,6 +149,35 @@ class LiveClassPreloadEngine extends ChangeNotifier {
       },
       onError: (err) {
         debugPrint("Firestore Live Class Stream Error: $err");
+      },
+    );
+
+    // Also support web admin panel live_session/current
+    _legacyFirestoreSubscription?.cancel();
+    _legacyFirestoreSubscription = FirebaseFirestore.instance
+        .collection('live_session')
+        .doc('current')
+        .snapshots()
+        .listen(
+      (doc) {
+        if (!doc.exists) return;
+        final data = doc.data() as Map<String, dynamic>;
+        final legacyLive = data['isLive'] == true;
+        final legacyVideoId = data['youtubeVideoId']?.toString() ?? "";
+        final legacyTitle = data['title']?.toString() ?? "Class 10 Live Session";
+
+        if (legacyLive && legacyVideoId.isNotEmpty && !_isClassLive) {
+          _isClassLive = true;
+          _subject = legacyTitle;
+          _topic = "Live Stream";
+          _rawYoutubeUrl = legacyVideoId;
+          _isYoutubeLiveStream = true;
+          _parseAndPrewarmYoutube(legacyVideoId);
+          notifyListeners();
+        }
+      },
+      onError: (err) {
+        debugPrint("Firestore Legacy Live Stream Error: $err");
       },
     );
   }
@@ -297,6 +322,7 @@ class LiveClassPreloadEngine extends ChangeNotifier {
   @override
   void dispose() {
     _firestoreSubscription?.cancel();
+    _legacyFirestoreSubscription?.cancel();
     _cleanupEngines();
     super.dispose();
   }

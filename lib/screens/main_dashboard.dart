@@ -11,6 +11,7 @@ import '../utils/app_colors.dart';
 import '../screens/live_class_room.dart';
 import '../services/notification_service.dart';
 import '../services/background_music_service.dart';
+import '../services/live_class_preload_engine.dart';
 import '../utils/web_navigation_helper.dart';
 import '../widgets/desktop_navigation.dart';
 import '../widgets/doubts_panel.dart';
@@ -74,6 +75,7 @@ class _MainDashboardState extends State<MainDashboard> {
       NotificationService().syncTokenAndTopics();
       // 🎵 Automatically start background anthem seamlessly
       BackgroundMusicService.instance.startAutoMusic();
+      LiveClassPreloadEngine().initialize();
     });
   }
 
